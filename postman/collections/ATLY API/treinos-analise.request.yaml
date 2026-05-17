@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'Análise de carga do atleta'
+method: GET
+url: '{{baseUrl}}/api/v1/treinos/atleta/:atletaId/analise'
+order: 12000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: atletaId
+    value: '{{atletaId}}'

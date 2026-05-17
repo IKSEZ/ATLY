@@ -14,7 +14,22 @@ const IA_SERVICE_URL = process.env.IA_SERVICE_URL || 'http://localhost:8000';
 // Salva uma sessão de treino: intensidade, duração, volume
 // ----------------------------------------------------------
 const registrar = async (req, res) => {
-  const { atleta_id, intensidade, duracao_min, volume, data_treino, tipo } = req.body;
+  const atleta_id = req.body.atleta_id ?? req.body.atletaId;
+  const intensidade = Number(req.body.intensidade);
+  const duracao_min = Number(req.body.duracao_min ?? req.body.duracao);
+  const volume = req.body.volume !== undefined ? Number(req.body.volume) : null;
+  const data_treino = req.body.data_treino ?? req.body.dataTreino;
+  const tipo = req.body.tipo;
+
+  if (!atleta_id || Number.isNaN(intensidade) || Number.isNaN(duracao_min)) {
+    return res.status(400).json({
+      erro: 'Campos obrigatórios: atleta_id, intensidade e duracao_min',
+    });
+  }
+
+  if (volume !== null && Number.isNaN(volume)) {
+    return res.status(400).json({ erro: 'Campo volume deve ser numérico' });
+  }
 
   // Atleta só pode registrar treino para si mesmo
   if (req.usuario.perfil === 'atleta' && req.usuario.id !== atleta_id) {
@@ -32,7 +47,15 @@ const registrar = async (req, res) => {
     [atleta_id, intensidade, duracao_min, volume, carga, tipo, data_treino || new Date()]
   );
 
-  res.status(201).json({ treino: rows[0] });
+  const { rows: atletaRows } = await pool.query(
+    'SELECT id, nome, email FROM usuarios WHERE id = $1',
+    [atleta_id]
+  );
+
+  res.status(201).json({
+    treino: rows[0],
+    atleta: atletaRows[0] || null,
+  });
 };
 
 // ----------------------------------------------------------
@@ -87,13 +110,22 @@ const analisarCarga = async (req, res) => {
 
   // Chama o microserviço Python de IA
   // O Python faz o cálculo pesado e retorna { acwr, nivel_risco, alerta }
-  const resposta = await axios.post(`${IA_SERVICE_URL}/analisar`, {
-    atleta_id: atletaId,
-    treinos,
-    perfil: perfil[0] || {},
-  });
+  let analise;
+  try {
+    const resposta = await axios.post(`${IA_SERVICE_URL}/analisar`, {
+      atleta_id: atletaId,
+      treinos,
+      perfil: perfil[0] || {},
+    });
 
-  const analise = resposta.data;
+    analise = resposta.data;
+  } catch (err) {
+    console.error('IA service error:', err.message);
+    return res.status(503).json({
+      erro: 'Serviço de análise indisponível',
+      detalhe: 'Verifique se o microserviço Python está rodando em IA_SERVICE_URL',
+    });
+  }
 
   // RF13: se risco elevado, registra alerta no banco
   if (analise.nivel_risco === 'alto') {

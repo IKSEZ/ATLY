@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'Desvincular atleta'
+method: DELETE
+url: '{{baseUrl}}/api/v1/atletas/:id/desvincular'
+order: 9000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: id
+    value: '{{atletaId}}'

@@ -1,0 +1,23 @@
+$kind: http-request
+name: 'Registrar treino'
+method: POST
+url: '{{baseUrl}}/api/v1/treinos'
+order: 10000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "atleta_id": {{atletaId}},
+      "intensidade": 7,
+      "duracao_min": 60,
+      "volume": 4,
+      "tipo": "corrida"
+    }
+pathVariables:
+  - key: id
+    value: '{{atletaId}}'

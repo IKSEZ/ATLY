@@ -1,0 +1,12 @@
+$kind: http-request
+name: Listar atletas
+method: GET
+url: "{{baseUrl}}/api/v1/atletas"
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: '{{token}}'
+order: 4000

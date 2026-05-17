@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'Listar treinos por atleta'
+method: GET
+url: '{{baseUrl}}/api/v1/treinos/atleta/:atletaId'
+order: 11000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: atletaId
+    value: '{{atletaId}}'

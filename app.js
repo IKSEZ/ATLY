@@ -3,6 +3,8 @@
 // Aqui registramos middlewares globais e as rotas da API
 // ============================================================
 
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');

@@ -1,0 +1,18 @@
+$kind: http-request
+name: Cadastro
+method: POST
+url: "{{baseUrl}}/api/v1/auth/cadastro"
+auth:
+  type: noauth
+order: 1000
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "Kevyn jogadô",
+      "email": "teste1@example.com",
+      "senha": "123456",
+      "perfil": "atleta"
+    }

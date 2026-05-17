@@ -25,7 +25,7 @@ const autenticar = async (req, res, next) => {
 
     // Verifica se o token foi invalidado (logout explícito — RF07)
     const { rows } = await pool.query(
-      'SELECT id FROM tokens_invalidados WHERE token = $1',
+      'SELECT 1 FROM tokens_invalidados WHERE token = $1',
       [token]
     );
     if (rows.length > 0) {
@@ -41,6 +41,7 @@ const autenticar = async (req, res, next) => {
 
     next();
   } catch (err) {
+    console.error('JWT auth error:', err);
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ erro: 'Token expirado' });
     }

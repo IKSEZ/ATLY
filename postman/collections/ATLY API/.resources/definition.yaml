@@ -1,0 +1,9 @@
+$kind: collection
+name: 'ATLY API'
+variables:
+  - key: baseUrl
+    value: 'http://localhost:3000'
+  - key: token
+    value: ''
+  - key: atletaId
+    value: '1'

@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'Relatório de desempenho'
+method: GET
+url: '{{baseUrl}}/api/v1/relatorios/atleta/:atletaId/desempenho'
+order: 13000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: atletaId
+    value: '{{atletaId}}'

@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'Vincular atleta'
+method: POST
+url: '{{baseUrl}}/api/v1/atletas/:id/vincular'
+order: 8000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: id
+    value: '{{atletaId}}'

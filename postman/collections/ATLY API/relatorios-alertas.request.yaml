@@ -1,0 +1,11 @@
+$kind: http-request
+name: 'Relatório de alertas'
+method: GET
+url: '{{baseUrl}}/api/v1/relatorios/atleta/:atletaId/alertas'
+order: 14000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: atletaId
+    value: '{{atletaId}}'
