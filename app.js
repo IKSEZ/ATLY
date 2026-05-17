@@ -25,10 +25,15 @@ const app = express();
 app.use(helmet());
 
 // cors: permite que o front-end (React) acesse a API
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+// Allow frontend during development (supports Vite default ports 5173/5174)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors({ origin: true, credentials: true }));
+} else {
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  }));
+}
 
 // Parseia JSON no corpo das requisições
 app.use(express.json());
