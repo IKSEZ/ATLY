@@ -5,9 +5,49 @@
 // ============================================================
 
 const { pool } = require('../config/database');
-const axios = require('axios');
 
 const IA_SERVICE_URL = process.env.IA_SERVICE_URL || 'http://localhost:8000';
+const IA_SERVICE_TIMEOUT_MS = Number(process.env.IA_SERVICE_TIMEOUT_MS || 10000);
+
+async function chamarServicoIA(atletaId, treinos, perfil) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), IA_SERVICE_TIMEOUT_MS);
+
+  try {
+    const resposta = await fetch(`${IA_SERVICE_URL}/analisar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        atleta_id: atletaId,
+        treinos,
+        perfil,
+      }),
+      signal: controller.signal,
+    });
+
+    const texto = await resposta.text();
+    let dados = {};
+
+    if (texto) {
+      try {
+        dados = JSON.parse(texto);
+      } catch {
+        throw new Error(`Resposta inválida do serviço IA: ${texto}`);
+      }
+    }
+
+    if (!resposta.ok) {
+      const detalhe = dados.erro || dados.detail || texto || `HTTP ${resposta.status}`;
+      throw new Error(`Serviço IA respondeu com erro: ${detalhe}`);
+    }
+
+    return dados;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 // ----------------------------------------------------------
 // registrar — RF09
@@ -112,18 +152,12 @@ const analisarCarga = async (req, res) => {
   // O Python faz o cálculo pesado e retorna { acwr, nivel_risco, alerta }
   let analise;
   try {
-    const resposta = await axios.post(`${IA_SERVICE_URL}/analisar`, {
-      atleta_id: atletaId,
-      treinos,
-      perfil: perfil[0] || {},
-    });
-
-    analise = resposta.data;
+    analise = await chamarServicoIA(atletaId, treinos, perfil[0] || {});
   } catch (err) {
     console.error('IA service error:', err.message);
     return res.status(503).json({
       erro: 'Serviço de análise indisponível',
-      detalhe: 'Verifique se o microserviço Python está rodando em IA_SERVICE_URL',
+      detalhe: err.message || 'Verifique se o microserviço Python está rodando em IA_SERVICE_URL',
     });
   }
 

@@ -37,10 +37,10 @@ CREATE TABLE IF NOT EXISTS tecnico_atleta (
 CREATE TABLE IF NOT EXISTS sessoes_treino (
   id           SERIAL PRIMARY KEY,
   atleta_id    INT REFERENCES usuarios(id) ON DELETE CASCADE,
-  intensidade  DECIMAL(4,1) NOT NULL CHECK (intensidade BETWEEN 1 AND 10),
+  intensidade  INT NOT NULL CHECK (intensidade BETWEEN 1 AND 10),
   duracao_min  INT NOT NULL,
-  volume       DECIMAL(8,2),
-  carga        DECIMAL(10,2), -- intensidade × duração
+  volume       DECIMAL(8,2) NOT NULL,
+  carga        DECIMAL(10,1), -- intensidade × duração
   tipo         VARCHAR(50),
   data_treino  TIMESTAMP DEFAULT NOW()
 );

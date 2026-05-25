@@ -4,6 +4,17 @@ import treinoService from './services/treinoService'
 import Login from './pages/login'
 import './App.css'
 
+const formatDecimal = (value, minimumFractionDigits, maximumFractionDigits) => {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return '--'
+  }
+
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits,
+    maximumFractionDigits,
+  }).format(Number(value))
+}
+
 function App() {
   const [usuario, setUsuario] = useState(null)
   const [tela, setTela] = useState('dashboard')
@@ -144,12 +155,12 @@ function Dashboard({ atletaId }) {
             <tbody>
               {treinos.map((treino) => (
                 <tr key={treino.id}>
-                  <td>{new Date(treino.data_treino).toLocaleDateString()}</td>
+                  <td>{new Date(treino.data_treino).toLocaleDateString('pt-BR')}</td>
                   <td>{treino.tipo || '-'}</td>
-                  <td>{treino.intensidade}</td>
+                  <td>{Number.isInteger(Number(treino.intensidade)) ? Number(treino.intensidade) : formatDecimal(treino.intensidade, 0, 1)}</td>
                   <td>{treino.duracao_min}</td>
-                  <td>{treino.volume || '-'}</td>
-                  <td>{treino.carga ? Number(treino.carga).toFixed(2) : '--'}</td>
+                  <td>{formatDecimal(treino.volume, 2, 2)}</td>
+                  <td>{formatDecimal(treino.carga, 1, 1)}</td>
                 </tr>
               ))}
             </tbody>
@@ -174,11 +185,15 @@ function RegistrarTreino({ atletaId, onTreinoRegistrado }) {
     setMensagem('')
 
     try {
+      const intensidadeNumero = parseInt(intensidade, 10)
+      const duracaoNumero = parseInt(duracao, 10)
+      const volumeNumero = volume === '' ? null : parseFloat(volume)
+
       await treinoService.registrar(
         atletaId,
-        parseFloat(intensidade),
-        parseInt(duracao),
-        parseFloat(volume),
+        intensidadeNumero,
+        duracaoNumero,
+        volumeNumero,
         tipo
       )
 
@@ -221,6 +236,7 @@ function RegistrarTreino({ atletaId, onTreinoRegistrado }) {
             type="number"
             min="1"
             max="10"
+            step="1"
             value={intensidade}
             onChange={(e) => setIntensidade(e.target.value)}
             placeholder="Ex: 7"
@@ -244,6 +260,7 @@ function RegistrarTreino({ atletaId, onTreinoRegistrado }) {
           Volume (km ou repetições):
           <input
             type="number"
+            step="0.01"
             value={volume}
             onChange={(e) => setVolume(e.target.value)}
             placeholder="Ex: 10"
