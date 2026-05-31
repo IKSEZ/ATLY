@@ -1,28 +1,5 @@
-# Atly API — Back-end
+# Atly —
 
-API REST do sistema Atly, desenvolvida com Node.js + Express + PostgreSQL.
-
-## Estrutura de pastas
-
-```
-src/
-├── server.js              # Ponto de entrada — inicia o servidor
-├── app.js                 # Configuração do Express (middlewares e rotas)
-├── config/
-│   └── database.js        # Conexão com PostgreSQL
-├── middlewares/
-│   └── auth.middleware.js # Verificação JWT e controle de acesso (RBAC)
-├── routes/
-│   ├── auth.routes.js     # /api/v1/auth
-│   ├── atleta.routes.js   # /api/v1/atletas
-│   ├── treino.routes.js   # /api/v1/treinos
-│   └── relatorio.routes.js# /api/v1/relatorios
-└── controllers/
-    ├── auth.controller.js     # Cadastro, login, logout
-    ├── atleta.controller.js   # CRUD de atletas
-    ├── treino.controller.js   # Registro e análise de treinos
-    └── relatorio.controller.js# Dados para gráficos
-```
 
 ## Como rodar
 
@@ -31,19 +8,7 @@ src/
 npm install
 ```
 
-### 2. Configurar variáveis de ambiente
-```bash
-cp .env.example .env
-# Edite o .env com suas credenciais
-```
-
-### 3. Criar o banco de dados
-```bash
-psql -U postgres -c "CREATE DATABASE atly_db;"
-psql -U postgres -d atly_db -f schema.sql
-```
-
-### 4. Iniciar em modo desenvolvimento
+### 2. Iniciar em modo desenvolvimento
 ```bash
 npm run dev
 ```
