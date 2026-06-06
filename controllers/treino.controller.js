@@ -6,47 +6,74 @@
 
 const { pool } = require('../config/database');
 
-const IA_SERVICE_URL = process.env.IA_SERVICE_URL || 'http://localhost:8000';
+const IA_SERVICE_URL = process.env.IA_SERVICE_URL || 'http://127.0.0.1:8000';
 const IA_SERVICE_TIMEOUT_MS = Number(process.env.IA_SERVICE_TIMEOUT_MS || 10000);
 
-async function chamarServicoIA(atletaId, treinos, perfil) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), IA_SERVICE_TIMEOUT_MS);
+function obterUrlsServicoIA() {
+  const urls = [IA_SERVICE_URL];
 
   try {
-    const resposta = await fetch(`${IA_SERVICE_URL}/analisar`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        atleta_id: atletaId,
-        treinos,
-        perfil,
-      }),
-      signal: controller.signal,
-    });
+    const baseUrl = new URL(IA_SERVICE_URL);
 
-    const texto = await resposta.text();
-    let dados = {};
-
-    if (texto) {
-      try {
-        dados = JSON.parse(texto);
-      } catch {
-        throw new Error(`Resposta inválida do serviço IA: ${texto}`);
-      }
+    if (baseUrl.hostname === 'localhost' || baseUrl.hostname === '127.0.0.1') {
+      const fallbackUrl = new URL(IA_SERVICE_URL);
+      fallbackUrl.hostname = baseUrl.hostname === 'localhost' ? '127.0.0.1' : 'localhost';
+      urls.push(fallbackUrl.toString().replace(/\/$/, ''));
     }
-
-    if (!resposta.ok) {
-      const detalhe = dados.erro || dados.detail || texto || `HTTP ${resposta.status}`;
-      throw new Error(`Serviço IA respondeu com erro: ${detalhe}`);
-    }
-
-    return dados;
-  } finally {
-    clearTimeout(timeoutId);
+  } catch {
+    // Mantém apenas a URL original quando o valor do ambiente estiver malformado.
   }
+
+  return [...new Set(urls)];
+}
+
+async function chamarServicoIA(atletaId, treinos, perfil) {
+  let ultimoErro;
+  const urlsServicoIA = obterUrlsServicoIA();
+
+  for (const baseUrl of urlsServicoIA) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), IA_SERVICE_TIMEOUT_MS);
+
+    try {
+      const resposta = await fetch(`${baseUrl}/analisar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          atleta_id: atletaId,
+          treinos,
+          perfil,
+        }),
+        signal: controller.signal,
+      });
+
+      const texto = await resposta.text();
+      let dados = {};
+
+      if (texto) {
+        try {
+          dados = JSON.parse(texto);
+        } catch {
+          throw new Error(`Resposta inválida do serviço IA em ${baseUrl}: ${texto}`);
+        }
+      }
+
+      if (!resposta.ok) {
+        const detalhe = dados.erro || dados.detail || texto || `HTTP ${resposta.status}`;
+        throw new Error(`Serviço IA respondeu com erro em ${baseUrl}: ${detalhe}`);
+      }
+
+      return dados;
+    } catch (err) {
+      ultimoErro = err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  throw new Error(ultimoErro?.message || 'Não foi possível conectar ao serviço IA');
 }
 
 // ----------------------------------------------------------

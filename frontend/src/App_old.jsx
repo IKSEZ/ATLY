@@ -31,11 +31,6 @@ function Dashboard() {
   const [analise, setAnalise] = useState(null)
   const [treinos, setTreinos] = useState([])
 
-  useEffect(() => {
-    buscarAnalise()
-    buscarTreinos()
-  }, [])
-
   async function buscarAnalise() {
     try {
       const token = localStorage.getItem('token')
@@ -67,6 +62,14 @@ function Dashboard() {
       console.error('Erro ao buscar treinos:', error)
     }
   }
+
+  useEffect(() => {
+    async function carregarDados() {
+      await Promise.all([buscarAnalise(), buscarTreinos()])
+    }
+
+    void carregarDados()
+  }, [])
 
   return (
     <section>

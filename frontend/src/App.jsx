@@ -16,16 +16,8 @@ const formatDecimal = (value, minimumFractionDigits, maximumFractionDigits) => {
 }
 
 function App() {
-  const [usuario, setUsuario] = useState(null)
+  const [usuario, setUsuario] = useState(() => authService.getUsuarioLogado())
   const [tela, setTela] = useState('dashboard')
-
-  useEffect(() => {
-    // Verificar se usuário já está logado
-    const usuarioLogado = authService.getUsuarioLogado()
-    if (usuarioLogado) {
-      setUsuario(usuarioLogado)
-    }
-  }, [])
 
   function handleLogout() {
     authService.logout()
@@ -72,25 +64,25 @@ function Dashboard({ atletaId }) {
   const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
-    buscarDados()
-  }, [atletaId])
+    async function buscarDados() {
+      setCarregando(true)
+      try {
+        const [treinosData, analiseData] = await Promise.all([
+          treinoService.listarPorAtleta(atletaId),
+          treinoService.analisarCarga(atletaId),
+        ])
 
-  async function buscarDados() {
-    setCarregando(true)
-    try {
-      const [treinosData, analiseData] = await Promise.all([
-        treinoService.listarPorAtleta(atletaId),
-        treinoService.analisarCarga(atletaId),
-      ])
-
-      setTreinos(treinosData.treinos || [])
-      setAnalise(analiseData.analise)
-    } catch (error) {
-      console.error('Erro ao buscar dados:', error)
-    } finally {
-      setCarregando(false)
+        setTreinos(treinosData.treinos || [])
+        setAnalise(analiseData.analise)
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error)
+      } finally {
+        setCarregando(false)
+      }
     }
-  }
+
+    void buscarDados()
+  }, [atletaId])
 
   if (carregando) {
     return <div style={{ padding: '20px' }}>Carregando...</div>
