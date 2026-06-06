@@ -1,130 +1,119 @@
 import { useState } from 'react'
-import authService from '../services/authService'
+import api from '../services/api'
+import {
+  ArrowRight,
+  Eye,
+  EyeOff
+} from 'lucide-react'
 
-export default function Login({ onLoginSuccess }) {
+function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [erro, setErro] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
   const [carregando, setCarregando] = useState(false)
-  const [modo, setModo] = useState('login') // 'login' ou 'cadastro'
-  const [nome, setNome] = useState('')
+  const [erro, setErro] = useState('')
 
-  async function handleLogin(e) {
+  async function fazerLogin(e) {
     e.preventDefault()
-    setCarregando(true)
     setErro('')
+    setCarregando(true)
 
     try {
-      const resultado = await authService.login(email, senha)
-      if (onLoginSuccess) {
-        onLoginSuccess(resultado.usuario)
+      const resposta = await api.post('/auth/login', {
+        email,
+        senha
+      })
+
+      const { accessToken, token, usuario } = resposta.data
+      const tokenAutenticacao = accessToken || token
+
+      const usuarioFinal = {
+        ...usuario,
+        perfil: usuario.perfil
       }
-    } catch (err) {
-      setErro(err.response?.data?.erro || 'Erro ao fazer login')
-    } finally {
-      setCarregando(false)
-    }
-  }
 
-  async function handleCadastro(e) {
-    e.preventDefault()
-    setCarregando(true)
-    setErro('')
+      localStorage.setItem('token', tokenAutenticacao)
+      localStorage.setItem('usuario', JSON.stringify(usuarioFinal))
 
-    try {
-      await authService.cadastro(nome, email, senha)
-      setErro('')
-      setModo('login')
-      setEmail('')
-      setSenha('')
-      setNome('')
-    } catch (err) {
-      setErro(err.response?.data?.erro || 'Erro ao cadastrar')
+      onLoginSuccess(usuarioFinal)
+    } catch (error) {
+      console.error('Erro no login:', error)
+      setErro('E-mail ou senha inválidos.')
     } finally {
       setCarregando(false)
     }
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto' }}>
-      <h1>{modo === 'login' ? 'Login' : 'Cadastro'}</h1>
+    <main className="login-screen">
+      <section className="login-container">
 
-      {erro && (
-        <div style={{ color: 'red', marginBottom: '10px', padding: '10px', border: '1px solid red', borderRadius: '4px' }}>
-          {erro}
-        </div>
-      )}
-
-      <form onSubmit={modo === 'login' ? handleLogin : handleCadastro}>
-        {modo === 'cadastro' && (
-          <div style={{ marginBottom: '10px' }}>
-            <label>Nome:</label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-            />
+        <div className="login-brand-row">
+          <div className="login-logo-wrapper">
+          <img src="/logo-atly.png" alt="ATLY Performance Monitorada" />
           </div>
-        )}
-
-        <div style={{ marginBottom: '10px' }}>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <label>Senha:</label>
-          <input
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
+        <div className="login-heading">
+          <h2>Bem-vindo ao ATLY</h2>
+          <p>Faça login para acessar o sistema de monitoramento</p>
         </div>
 
-        <button
-          type="submit"
-          disabled={carregando}
-          style={{
-            width: '100%',
-            padding: '10px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: carregando ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {carregando ? 'Carregando...' : modo === 'login' ? 'Entrar' : 'Cadastrar'}
-        </button>
-      </form>
+        <form onSubmit={fazerLogin} className="login-form-clean">
+          <label>
+            E-mail
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
 
-      <p style={{ marginTop: '20px', textAlign: 'center' }}>
-        {modo === 'login' ? (
-          <>
-            Não tem conta?{' '}
-            <a href="#" onClick={() => setModo('cadastro')}>
-              Cadastre-se
-            </a>
-          </>
-        ) : (
-          <>
-            Já tem conta?{' '}
-            <a href="#" onClick={() => setModo('login')}>
-              Faça login
-            </a>
-          </>
-        )}
-      </p>
-    </div>
+          <label>
+            <div className="password-label-row">
+              <span>Senha</span>
+              <button type="button">Esqueceu a senha?</button>
+            </div>
+
+            <div className="password-input-box">
+              <input
+                type={mostrarSenha ? 'text' : 'password'}
+                placeholder="********"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+              >
+                {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+          </label>
+
+          {erro && <div className="login-error-clean">{erro}</div>}
+
+          <button
+            type="submit"
+            className="login-main-button"
+            disabled={carregando}
+          >
+            {carregando ? 'Entrando...' : 'Entrar'}
+            {!carregando && <ArrowRight size={19} />}
+          </button>
+        </form>
+
+        <p className="login-note">
+          Use um usuário real do sistema. O acesso demo foi removido para evitar tokens inválidos.
+        </p>
+
+      </section>
+    </main>
   )
 }
+
+export default Login
