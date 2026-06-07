@@ -1,130 +1,217 @@
 import { useState } from 'react'
-import authService from '../services/authService'
+import api from '../services/api'
+import {
+  ArrowRight,
+  Eye,
+  EyeOff
+} from 'lucide-react'
 
-export default function Login({ onLoginSuccess }) {
+function Login({ onLoginSuccess }) {
+  const [modo, setModo] = useState('login')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [erro, setErro] = useState('')
-  const [carregando, setCarregando] = useState(false)
-  const [modo, setModo] = useState('login') // 'login' ou 'cadastro'
   const [nome, setNome] = useState('')
+  const [perfil, setPerfil] = useState('atleta')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [carregando, setCarregando] = useState(false)
+  const [erro, setErro] = useState('')
+  const [sucesso, setSucesso] = useState('')
 
-  async function handleLogin(e) {
+  async function fazerLogin(e) {
     e.preventDefault()
-    setCarregando(true)
     setErro('')
+    setSucesso('')
+    setCarregando(true)
 
     try {
-      const resultado = await authService.login(email, senha)
-      if (onLoginSuccess) {
-        onLoginSuccess(resultado.usuario)
+      const resposta = await api.post('/auth/login', {
+        email,
+        senha
+      })
+
+      const { accessToken, token, usuario } = resposta.data
+      const tokenAutenticacao = accessToken || token
+
+      const usuarioFinal = {
+        ...usuario,
+        perfil: usuario.perfil
       }
-    } catch (err) {
-      setErro(err.response?.data?.erro || 'Erro ao fazer login')
+
+      localStorage.setItem('token', tokenAutenticacao)
+      localStorage.setItem('usuario', JSON.stringify(usuarioFinal))
+
+      onLoginSuccess(usuarioFinal)
+    } catch (error) {
+      console.error('Erro no login:', error)
+      setErro('E-mail ou senha inválidos.')
     } finally {
       setCarregando(false)
     }
   }
 
-  async function handleCadastro(e) {
+  async function fazerCadastro(e) {
     e.preventDefault()
-    setCarregando(true)
     setErro('')
+    setSucesso('')
+    setCarregando(true)
 
     try {
-      await authService.cadastro(nome, email, senha)
-      setErro('')
+      await api.post('/auth/cadastro', {
+        nome,
+        email,
+        senha,
+        perfil: perfil === 'treinador' ? 'tecnico' : 'atleta'
+      })
+
+      setSucesso('Cadastro realizado com sucesso. Agora faça login.')
       setModo('login')
-      setEmail('')
       setSenha('')
       setNome('')
-    } catch (err) {
-      setErro(err.response?.data?.erro || 'Erro ao cadastrar')
+      setPerfil('atleta')
+    } catch (error) {
+      console.error('Erro no cadastro:', error)
+      setErro(error.response?.data?.erro || 'Erro ao realizar cadastro.')
     } finally {
       setCarregando(false)
     }
+  }
+
+  function voltarParaLogin() {
+    setModo('login')
+    setErro('')
+    setSucesso('')
+    setSenha('')
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto' }}>
-      <h1>{modo === 'login' ? 'Login' : 'Cadastro'}</h1>
+    <main className="login-screen">
+      <section className="login-container">
 
-      {erro && (
-        <div style={{ color: 'red', marginBottom: '10px', padding: '10px', border: '1px solid red', borderRadius: '4px' }}>
-          {erro}
+        <div className="login-brand-row">
+          <div className="login-logo-wrapper">
+          <img src="/logo-atly.png" alt="ATLY Performance Monitorada" />
+          </div>
         </div>
-      )}
 
-      <form onSubmit={modo === 'login' ? handleLogin : handleCadastro}>
+        <div className="login-heading">
+          <h2>{modo === 'login' ? 'Bem-vindo ao ATLY' : 'Criar conta no ATLY'}</h2>
+          <p>
+            {modo === 'login'
+              ? 'Faça login para acessar o sistema de monitoramento'
+              : 'Cadastre-se como atleta ou treinador para acessar o sistema'}
+          </p>
+        </div>
+
         {modo === 'cadastro' && (
-          <div style={{ marginBottom: '10px' }}>
-            <label>Nome:</label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-              style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-            />
+          <div className="login-type-grid">
+            <button
+              type="button"
+              className={perfil === 'atleta' ? 'selected' : ''}
+              onClick={() => setPerfil('atleta')}
+            >
+              Atleta
+            </button>
+
+            <button
+              type="button"
+              className={perfil === 'treinador' ? 'selected' : ''}
+              onClick={() => setPerfil('treinador')}
+            >
+              Treinador
+            </button>
           </div>
         )}
 
-        <div style={{ marginBottom: '10px' }}>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-        </div>
+        <form onSubmit={modo === 'login' ? fazerLogin : fazerCadastro} className="login-form-clean">
+          {modo === 'cadastro' && (
+            <label>
+              Nome completo
+              <input
+                type="text"
+                placeholder="Seu nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                required
+              />
+            </label>
+          )}
 
-        <div style={{ marginBottom: '20px' }}>
-          <label>Senha:</label>
-          <input
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-          />
-        </div>
+          <label>
+            E-mail
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
 
-        <button
-          type="submit"
-          disabled={carregando}
-          style={{
-            width: '100%',
-            padding: '10px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: carregando ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {carregando ? 'Carregando...' : modo === 'login' ? 'Entrar' : 'Cadastrar'}
-        </button>
-      </form>
+          <label>
+            <div className="password-label-row">
+              <span>Senha</span>
+              {modo === 'login' && <button type="button">Esqueceu a senha?</button>}
+            </div>
 
-      <p style={{ marginTop: '20px', textAlign: 'center' }}>
-        {modo === 'login' ? (
-          <>
-            Não tem conta?{' '}
-            <a href="#" onClick={() => setModo('cadastro')}>
-              Cadastre-se
-            </a>
-          </>
-        ) : (
-          <>
-            Já tem conta?{' '}
-            <a href="#" onClick={() => setModo('login')}>
-              Faça login
-            </a>
-          </>
-        )}
-      </p>
-    </div>
+            <div className="password-input-box">
+              <input
+                type={mostrarSenha ? 'text' : 'password'}
+                placeholder="********"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+              >
+                {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+          </label>
+
+          {erro && <div className="login-error-clean">{erro}</div>}
+          {sucesso && <div className="login-success-clean">{sucesso}</div>}
+
+          <button
+            type="submit"
+            className="login-main-button"
+            disabled={carregando}
+          >
+            {carregando
+              ? modo === 'login'
+                ? 'Entrando...'
+                : 'Cadastrando...'
+              : modo === 'login'
+                ? 'Entrar'
+                : 'Cadastrar'}
+            {!carregando && <ArrowRight size={19} />}
+          </button>
+
+          <div className="login-actions-row">
+            {modo === 'login' ? (
+              <button
+                type="button"
+                className="login-secondary-button"
+                onClick={() => setModo('cadastro')}
+              >
+                Criar conta para atleta ou treinador
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="login-secondary-button"
+                onClick={voltarParaLogin}
+              >
+                Já tenho conta
+              </button>
+            )}
+          </div>
+        </form>
+      </section>
+    </main>
   )
 }
+
+export default Login
