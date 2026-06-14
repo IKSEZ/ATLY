@@ -83,6 +83,25 @@ async function analisarAtleta(atletaId) {
         throw new Error(`Serviço IA respondeu com erro em ${baseUrl}: ${detalhe}`);
       }
 
+      // Persiste o resultado no atleta_perfil para uso no listar()
+      // Isso evita chamar a IA para cada atleta na listagem
+      await pool.query(
+        `UPDATE atleta_perfil
+         SET acwr          = $1,
+             nivel_risco   = $2,
+             carga_aguda   = $3,
+             carga_cronica = $4,
+             analise_em    = NOW()
+         WHERE usuario_id = $5`,
+        [
+          dados.acwr ?? null,
+          dados.nivel_risco ?? null,
+          dados.carga_aguda_media ?? null,
+          dados.carga_cronica_media ?? null,
+          atletaId,
+        ]
+      );
+
       return { analise: dados, treinos };
     } catch (err) {
       ultimoErro = err;
@@ -96,10 +115,22 @@ async function analisarAtleta(atletaId) {
 
 // ----------------------------------------------------------
 // listar — somente técnico, vê apenas seus atletas vinculados
+// Lê acwr e nivel_risco do cache em atleta_perfil (sem chamar IA)
 // ----------------------------------------------------------
 const listar = async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT a.id, a.nome, a.email, ap.idade, ap.peso, ap.historico_lesoes
+    `SELECT 
+      a.id, 
+      a.nome, 
+      a.email, 
+      ap.idade, 
+      ap.peso, 
+      ap.historico_lesoes,
+      ap.acwr,
+      ap.nivel_risco,
+      ap.carga_aguda,
+      ap.carga_cronica,
+      ap.analise_em
      FROM usuarios a
      JOIN tecnico_atleta ta ON ta.atleta_id = a.id
      JOIN atleta_perfil ap ON ap.usuario_id = a.id
@@ -135,7 +166,16 @@ const buscarPorId = async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.nome, u.email, ap.idade, ap.peso, ap.historico_lesoes
+    `SELECT 
+      u.id, 
+      u.nome, 
+      u.email, 
+      ap.idade, 
+      ap.peso,
+      ap.modalidade, 
+      ap.historico_lesoes,
+      ap.acwr, AS acwr_cache,
+      ap.nivel_risco AS nivel_risco_cache,
      FROM usuarios u
      LEFT JOIN atleta_perfil ap ON ap.usuario_id = u.id
      WHERE u.id = $1`,
@@ -151,36 +191,45 @@ const buscarPorId = async (req, res) => {
 
     const atleta = {
       ...rows[0],
-      acwr: analise?.acwr ?? null,
-      nivel_risco: analise?.nivel_risco ?? 'sem dados',
+      acwr: analise?.acwr ?? rows[0].acwr_cache ?? null,
+      nivel_risco: analise?.nivel_risco ?? rows[0].nivel_risco_cache ?? 'sem dados',
       mensagem: analise?.mensagem ?? 'Nenhuma análise disponível no momento.',
       carga_aguda: analise?.carga_aguda ?? analise?.carga_aguda_media ?? null,
       carga_cronica: analise?.carga_cronica ?? analise?.carga_cronica_media ?? null,
       treinos,
     };
+    
+    // Remove os campos temporários de cache do objeto de resposta para evitar confusão no frontend
+    delete atleta.acwr_cache;
+    delete atleta.nivel_risco_cache;
 
     res.json({ atleta });
   } catch (err) {
     console.error('Erro ao montar detalhe do atleta:', err.message);
-    res.json({
-      atleta: {
-        ...rows[0],
-        acwr: null,
-        nivel_risco: 'sem dados',
-        mensagem: 'Não foi possível carregar a análise detalhada.',
-        carga_aguda: null,
-        carga_cronica: null,
-        treinos: [],
-      },
-    });
+
+    const atleta = {
+      ...rows[0],
+      acwr: rows[0].acwr_cache ?? null,
+      nivel_risco: rows[0].nivel_risco_cache ?? 'sem dados',
+      mensagem: 'Não foi possível carregar a análise detalhada.',
+      carga_aguda: null,
+      carga_cronica: null,
+      treinos: [],
+    };
+
+    delete atleta.acwr_cache;
+    delete atleta.nivel_risco_cache;
+
+    res.json({ atleta });
   }
 };
 
 // ----------------------------------------------------------
 // criar — RF08
+// Cria atleta com senha temporária e flag senha_provisoria
 // ----------------------------------------------------------
 const criar = async (req, res) => {
-  const { nome, email, idade, peso, historico_lesoes } = req.body;
+  const { nome, email, idade, peso, modalidade, historico_lesoes } = req.body;
   const senhaTemporaria = crypto.randomBytes(6).toString('base64url');
   const senhaHash = await require('bcrypt').hash(senhaTemporaria, 12);
 
@@ -190,8 +239,8 @@ const criar = async (req, res) => {
 
     // Cria o usuário com perfil atleta
     const { rows: usuario } = await client.query(
-      `INSERT INTO usuarios (nome, email, senha_hash, perfil)
-       VALUES ($1, $2, $3, 'atleta')
+      `INSERT INTO usuarios (nome, email, senha_hash, perfil, senha_provisoria)
+       VALUES ($1, $2, $3, 'atleta', true)
        RETURNING id`,
       [nome, email, senhaHash]
     );
@@ -200,9 +249,9 @@ const criar = async (req, res) => {
 
     // Cria o perfil físico do atleta — RF10
     await client.query(
-      `INSERT INTO atleta_perfil (usuario_id, idade, peso, historico_lesoes)
-       VALUES ($1, $2, $3, $4)`,
-      [atletaId, idade, peso, historico_lesoes || '']
+      `INSERT INTO atleta_perfil (usuario_id, idade, peso, modalidade, historico_lesoes)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [atletaId, idade, peso, modalidade || null, historico_lesoes || '']
     );
 
     await client.query(
@@ -231,7 +280,7 @@ const criar = async (req, res) => {
 // ----------------------------------------------------------
 const atualizar = async (req, res) => {
   const { id } = req.params;
-  const { idade, peso, historico_lesoes } = req.body;
+  const { idade, peso, modalidade, historico_lesoes } = req.body;
 
   // Atleta só pode atualizar seus próprios dados
   if (req.usuario.perfil === 'atleta' && req.usuario.id !== parseInt(id)) {
@@ -242,10 +291,11 @@ const atualizar = async (req, res) => {
     `UPDATE atleta_perfil
      SET idade = COALESCE($1, idade),
          peso = COALESCE($2, peso),
-         historico_lesoes = COALESCE($3, historico_lesoes),
+         modalidade = COALESCE($3, modalidade),
+         historico_lesoes = COALESCE($4, historico_lesoes),
          atualizado_em = NOW()
-     WHERE usuario_id = $4`,
-    [idade, peso, historico_lesoes, id]
+     WHERE usuario_id = $5`,
+    [idade, peso, modalidade, historico_lesoes, id]
   );
 
   res.json({ mensagem: 'Dados atualizados com sucesso' });
@@ -287,4 +337,102 @@ const desvincular = async (req, res) => {
   res.json({ mensagem: 'Atleta desvinculado com sucesso' });
 };
 
-module.exports = { listar, buscarPorId, criar, atualizar, vincular, desvincular };
+// ----------------------------------------------------------
+// mapaCorporal — GET /atletas/:id/mapa-corporal
+// Gera regiões de risco a partir do nivel_risco e historico_lesoes
+// sem depender do serviço IA (Opção A — lógica no controller)
+// ----------------------------------------------------------
+
+const REGIOES_POR_TERMO = [
+  { termo: ['joelho'], nome: 'Joelho', x: 50, y: 72 },
+  { termo: ['coxa','quad'], nome: 'Coxa / Quadríceps', x: 50, y: 60 },
+  { termo: ['posterior'], nome: 'Posterior de Coxa', x: 50, y: 58 },
+  { termo: ['panturrilha', 'tornozelo'], nome: 'Panturrilha / Tornozelo', x: 48, y: 80 },
+  { termo: ['ombro'], nome: 'Ombro', x: 35, y: 30 },
+  { termos: ['lombar', 'coluna', 'costas'], nome: 'Lombar / Coluna', x: 50, y: 45 },
+  { termos: ['quadril'],      nome: 'Quadril',          x: 50, y: 52 },
+  { termos: ['cotovelo', 'pulso'], nome: 'Cotovelo / Pulso', x: 28, y: 50 },
+];
+
+const mapaCorporal = async (req, res) => {
+  const { id } = req.params;
+  const idNumerico = parseInt(id);
+
+  // Reutiliza a lógica de acesso do buscarPorId
+  if (req.usuario.perfil === 'atleta' && req.usuario.id !== idNumerico) {
+    return res.status(403).json({ erro: 'Acesso negado' });
+  }
+
+  if (req.usuario.perfil === 'tecnico') {
+    const { rows: vinculo } = await pool.query(
+      'SELECT 1 FROM tecnico_atleta WHERE tecnico_id = $1 AND atleta_id = $2',
+      [req.usuario.id, idNumerico]
+    );
+    if (vinculo.length === 0) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+  }
+
+  const { rows } = await pool.query(
+    `SELECT ap.nivel_risco, ap.historico_lesoes, ap.acwr
+     FROM atleta_perfil ap
+     WHERE ap.usuario_id = $1`,
+    [idNumerico]
+  );
+  
+  // Lógica para gerar o mapa corporal com base no nível de risco e histórico de lesões
+  // ...
+
+  if (rows.length === 0) {
+    return res.status(404).json({ erro: 'Perfil do atleta não encontrado' });
+  }
+
+  const { historico_lesoes = '', nivel_risco = 'baixo' } = rows[0];
+  const historicoLower = (historico_lesoes || '').toLowerCase();
+
+  //Mapeia termos do histórico de lesões para regiões do corpo
+  const regioesMapeadas = REGIOES_POR_TERMO
+    .filter(({ termo }) => termo.some(t => historicoLower.includes(t)))
+    .map(( regiao, idx) => ({
+      id: idx + 1,
+      nome: regiao.nome,
+      descricao: `Historico de lesão registrado nesta região`,
+      nivel: nivel_risco,
+      x: regiao.x,
+      y: regiao.y
+    }));
+
+    // Se não há um histórico mapeável mas o risco é alto/moderado,
+    // retorna uma região genérica para o mapa não ficar vazio
+    const regioes = regioesMapeadas.length > 0
+     ? regioesMapeadas
+     : nivel_risco === 'alto' || nivel_risco === 'moderado'
+      ? [{
+        id: 1,
+        nome: 'Sobrecarga Geral',
+        descricao: 'Risco detectado sem região específica no histórico',
+        nivel: nivel_risco,
+        x: 50,
+        y: 50,
+      }]
+    : [];
+
+  const alertas = regioes.map((r, idx) => ({
+    id: idx + 1,
+    area: r.nome,
+    descricao: r.descricao,
+    nivel: r.nivel,
+  }));
+
+  res.json({ regioes, alertas });
+};
+
+module.exports = { 
+  listar,
+  buscarPorId,
+  criar,
+  atualizar,
+  vincular,
+  desvincular,
+  mapaCorporal,
+};

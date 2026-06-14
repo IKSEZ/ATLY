@@ -17,6 +17,9 @@ router.get('/', autorizar('tecnico'), atletaController.listar);
 // GET /api/v1/atletas/:id — atleta vê só o próprio perfil (RF03)
 router.get('/:id', atletaController.buscarPorId);
 
+// GET /api/v1/atletas/:id/mapa-corporal — regiões e alertas do mapa corporal
+router.get('/:id/mapa-corporal', atletaController.mapaCorporal);
+
 // POST /api/v1/atletas — técnico cadastra atleta (RF08)
 router.post('/', autorizar('tecnico'), atletaController.criar);
 

@@ -2,13 +2,14 @@ import { useState } from 'react'
 import api from '../services/api'
 import Header from '../components/Header'
 
-function CadastroAtleta({ tecnicoId }) {
+function CadastroAtleta() {
   const [form, setForm] = useState({
     nome: '',
     email: '',
     idade: '',
     peso: '',
-    historico_lesoes: ''
+    modalidade: '',
+    historico_lesoes: '',
   })
 
   const [mensagem, setMensagem] = useState('')
@@ -17,10 +18,7 @@ function CadastroAtleta({ tecnicoId }) {
   const [loading, setLoading] = useState(false)
 
   function handleChange(e) {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    })
+    setForm({ ...form, [e.target.name]: e.target.value })
   }
 
   async function handleSubmit(e) {
@@ -34,7 +32,7 @@ function CadastroAtleta({ tecnicoId }) {
       const response = await api.post('/atletas', {
         ...form,
         idade: form.idade ? Number(form.idade) : null,
-        peso: form.peso ? Number(form.peso) : null
+        peso: form.peso ? Number(form.peso) : null,
       })
 
       setMensagem('Atleta cadastrado e vinculado com sucesso.')
@@ -45,10 +43,12 @@ function CadastroAtleta({ tecnicoId }) {
         email: '',
         idade: '',
         peso: '',
-        historico_lesoes: ''
+        modalidade: '',
+        historico_lesoes: '',
       })
     } catch (error) {
-      setErro('Erro ao cadastrar atleta.')
+      const msg = error.response?.data?.erro || 'Erro ao cadastrar atleta.'
+      setErro(msg)
     } finally {
       setLoading(false)
     }
@@ -81,6 +81,14 @@ function CadastroAtleta({ tecnicoId }) {
           required
         />
 
+        <label>Modalidade</label>
+        <input
+          name="modalidade"
+          placeholder="Ex: Futebol, Natação, Corrida..."
+          value={form.modalidade}
+          onChange={handleChange}
+        />
+
         <label>Idade</label>
         <input
           name="idade"
@@ -91,7 +99,7 @@ function CadastroAtleta({ tecnicoId }) {
           onChange={handleChange}
         />
 
-        <label>Peso</label>
+        <label>Peso (kg)</label>
         <input
           name="peso"
           type="number"
@@ -110,12 +118,22 @@ function CadastroAtleta({ tecnicoId }) {
           onChange={handleChange}
         />
 
-        {mensagem && <div className="success-message">{mensagem}</div>}
+        {mensagem && (
+          <div className="success-message">{mensagem}</div>
+        )}
+
         {senhaTemporaria && (
           <div className="success-message">
-            Senha temporária: <strong>{senhaTemporaria}</strong>
+            Senha temporária:{' '}
+            <strong>{senhaTemporaria}</strong>
+            <br />
+            <small>
+              Informe esta senha ao atleta. Ele será solicitado a trocá-la
+              no primeiro acesso.
+            </small>
           </div>
         )}
+
         {erro && <div className="error-message">{erro}</div>}
 
         <button type="submit" disabled={loading}>

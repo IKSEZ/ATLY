@@ -27,18 +27,20 @@ function Login({ onLoginSuccess }) {
       const { accessToken, token, usuario } = resposta.data
       const tokenAutenticacao = accessToken || token
 
-      const usuarioFinal = {
-        ...usuario,
-        perfil: usuario.perfil
-      }
-
       localStorage.setItem('token', tokenAutenticacao)
-      localStorage.setItem('usuario', JSON.stringify(usuarioFinal))
+      localStorage.setItem('usuario', JSON.stringify(usuario))
 
-      onLoginSuccess(usuarioFinal)
+      // Passa o usuario completo — incluindo senha_provisoria
+      // O componente pai decide redirecionar para PrimeiroAcesso ou dashboard
+      onLoginSuccess(usuario)
     } catch (error) {
       console.error('Erro no login:', error)
-      setErro('E-mail ou senha inválidos.')
+
+      if (error.response?.status === 429) {
+        setErro('Conta bloqueada temporariamente. Tente novamente em 15 minutos.')
+      } else {
+        setErro('E-mail ou senha inválidos.')
+      }
     } finally {
       setCarregando(false)
     }
@@ -50,7 +52,7 @@ function Login({ onLoginSuccess }) {
 
         <div className="login-brand-row">
           <div className="login-logo-wrapper">
-          <img src="/logo-atly.png" alt="ATLY Performance Monitorada" />
+            <img src="/logo-atly.png" alt="ATLY Performance Monitorada" />
           </div>
         </div>
 

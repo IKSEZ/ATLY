@@ -1,6 +1,6 @@
 // ============================================================
 // controllers/auth.controller.js
-// Lógica de cadastro, login e logout — RF01 ao RF07
+// Lógica de cadastro, login, logout e troca de senha — RF01 ao RF07
 // ============================================================
 
 const bcrypt = require('bcrypt');
@@ -8,13 +8,12 @@ const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'troque_isso_em_producao';
-const SALT_ROUNDS = 12; // custo do hash bcrypt — RNF02
+const SALT_ROUNDS = 12;
 const MAX_TENTATIVAS = 5;
-const BLOQUEIO_MS = 15 * 60 * 1000; // 15 minutos em ms — RF05
+const BLOQUEIO_MS = 15 * 60 * 1000;
 
 // ----------------------------------------------------------
 // cadastrar — RF01
-// Cria um novo usuário com perfil 'atleta' ou 'tecnico'
 // ----------------------------------------------------------
 const cadastrar = async (req, res) => {
   const { nome, email, senha, perfil } = req.body;
@@ -23,7 +22,6 @@ const cadastrar = async (req, res) => {
     return res.status(400).json({ erro: "Perfil deve ser 'atleta' ou 'tecnico'" });
   }
 
-  // Verifica se o e-mail já está cadastrado
   const { rows: existente } = await pool.query(
     'SELECT id FROM usuarios WHERE email = $1',
     [email]
@@ -32,7 +30,6 @@ const cadastrar = async (req, res) => {
     return res.status(409).json({ erro: 'E-mail já cadastrado' });
   }
 
-  // Nunca salvar senha em texto puro — RNF02
   const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
 
   const { rows } = await pool.query(
@@ -47,7 +44,7 @@ const cadastrar = async (req, res) => {
 
 // ----------------------------------------------------------
 // login — RF02, RF05
-// Autentica o usuário e retorna access token + refresh token
+// Inclui senha_provisoria na resposta para o frontend redirecionar
 // ----------------------------------------------------------
 const login = async (req, res) => {
   const { email, senha } = req.body;
@@ -62,7 +59,6 @@ const login = async (req, res) => {
     return res.status(401).json({ erro: 'Credenciais inválidas' });
   }
 
-  // RF05: verifica bloqueio por tentativas excessivas
   if (usuario.bloqueado_ate && new Date() < new Date(usuario.bloqueado_ate)) {
     return res.status(429).json({
       erro: 'Conta bloqueada temporariamente. Tente novamente em 15 minutos.',
@@ -72,7 +68,6 @@ const login = async (req, res) => {
   const senhaCorreta = await bcrypt.compare(senha, usuario.senha_hash);
 
   if (!senhaCorreta) {
-    // Incrementa contador de tentativas falhas
     const tentativas = (usuario.tentativas_login || 0) + 1;
     const bloqueadoAte = tentativas >= MAX_TENTATIVAS
       ? new Date(Date.now() + BLOQUEIO_MS)
@@ -86,20 +81,17 @@ const login = async (req, res) => {
     return res.status(401).json({ erro: 'Credenciais inválidas' });
   }
 
-  // Login bem-sucedido — zera o contador de tentativas
   await pool.query(
     'UPDATE usuarios SET tentativas_login = 0, bloqueado_ate = NULL WHERE id = $1',
     [usuario.id]
   );
 
-  // Gera o access token (expira em 8h — RNF03)
   const accessToken = jwt.sign(
     { id: usuario.id, perfil: usuario.perfil, nome: usuario.nome },
     JWT_SECRET,
     { expiresIn: '8h' }
   );
 
-  // Gera o refresh token (expira em 30 dias — RNF03)
   const refreshToken = jwt.sign(
     { id: usuario.id },
     JWT_SECRET,
@@ -109,16 +101,20 @@ const login = async (req, res) => {
   res.json({
     accessToken,
     refreshToken,
-    usuario: { id: usuario.id, nome: usuario.nome, perfil: usuario.perfil },
+    usuario: {
+      id: usuario.id,
+      nome: usuario.nome,
+      perfil: usuario.perfil,
+      // Sinaliza ao frontend que deve redirecionar para troca de senha
+      senha_provisoria: usuario.senha_provisoria ?? false,
+    },
   });
 };
 
 // ----------------------------------------------------------
 // logout — RF07
-// Invalida o token no servidor para impedir reutilização
 // ----------------------------------------------------------
 const logout = async (req, res) => {
-  // req.token é preenchido pelo middleware autenticar
   await pool.query(
     'INSERT INTO tokens_invalidados (token, invalidado_em) VALUES ($1, NOW())',
     [req.token]
@@ -127,4 +123,47 @@ const logout = async (req, res) => {
   res.json({ mensagem: 'Logout realizado com sucesso' });
 };
 
-module.exports = { cadastrar, login, logout };
+// ----------------------------------------------------------
+// definirSenha — primeiro acesso do atleta
+// O atleta usa a senha temporária para fazer login normalmente,
+// depois chama esta rota para definir a senha definitiva.
+// Exige autenticação (token válido).
+// ----------------------------------------------------------
+const definirSenha = async (req, res) => {
+  const { senha_atual, nova_senha } = req.body;
+
+  if (!senha_atual || !nova_senha) {
+    return res.status(400).json({ erro: 'senha_atual e nova_senha são obrigatórios' });
+  }
+
+  if (nova_senha.length < 8) {
+    return res.status(400).json({ erro: 'A nova senha deve ter no mínimo 8 caracteres' });
+  }
+
+  const { rows } = await pool.query(
+    'SELECT senha_hash, senha_provisoria FROM usuarios WHERE id = $1',
+    [req.usuario.id]
+  );
+
+  if (rows.length === 0) {
+    return res.status(404).json({ erro: 'Usuário não encontrado' });
+  }
+
+  const senhaAtualCorreta = await bcrypt.compare(senha_atual, rows[0].senha_hash);
+  if (!senhaAtualCorreta) {
+    return res.status(401).json({ erro: 'Senha atual incorreta' });
+  }
+
+  const novaHash = await bcrypt.hash(nova_senha, SALT_ROUNDS);
+
+  await pool.query(
+    `UPDATE usuarios
+     SET senha_hash = $1, senha_provisoria = FALSE
+     WHERE id = $2`,
+    [novaHash, req.usuario.id]
+  );
+
+  res.json({ mensagem: 'Senha definida com sucesso' });
+};
+
+module.exports = { cadastrar, login, logout, definirSenha };

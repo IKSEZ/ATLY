@@ -22,16 +22,10 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
     carregarAtletas()
   }, [tecnicoId])
 
-  async function abrirAtleta(atleta) {
-    try {
-      const response = await api.get(`/atletas/${atleta.id}`)
-      setAtletaSelecionado(response.data.atleta || atleta)
-      setTela('detalhes-atleta')
-    } catch (error) {
-      console.error('Erro ao carregar detalhe do atleta:', error)
-      setAtletaSelecionado(atleta)
-      setTela('detalhes-atleta')
-    }
+function abrirAtleta(atleta) {
+    // Passa só o ID — DetalhesAtleta busca os dados completos da API por conta própria
+    setAtletaSelecionado(atleta.id)
+    setTela('detalhes-atleta')
   }
 
   return (
