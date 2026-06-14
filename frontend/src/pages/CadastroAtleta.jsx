@@ -1,15 +1,25 @@
 import { useState } from 'react'
 import api from '../services/api'
 import Header from '../components/Header'
+<<<<<<< HEAD
 
 function CadastroAtleta() {
+=======
+import { ArrowRight } from 'lucide-react'
+
+function CadastroAtleta({ tecnicoId }) {
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
   const [form, setForm] = useState({
     nome: '',
     email: '',
     idade: '',
     peso: '',
+<<<<<<< HEAD
     modalidade: '',
     historico_lesoes: '',
+=======
+    historico_lesoes: ''
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
   })
 
   const [mensagem, setMensagem] = useState('')
@@ -18,7 +28,14 @@ function CadastroAtleta() {
   const [loading, setLoading] = useState(false)
 
   function handleChange(e) {
+<<<<<<< HEAD
     setForm({ ...form, [e.target.name]: e.target.value })
+=======
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    })
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
   }
 
   async function handleSubmit(e) {
@@ -32,7 +49,11 @@ function CadastroAtleta() {
       const response = await api.post('/atletas', {
         ...form,
         idade: form.idade ? Number(form.idade) : null,
+<<<<<<< HEAD
         peso: form.peso ? Number(form.peso) : null,
+=======
+        peso: form.peso ? Number(form.peso) : null
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
       })
 
       setMensagem('Atleta cadastrado e vinculado com sucesso.')
@@ -43,12 +64,19 @@ function CadastroAtleta() {
         email: '',
         idade: '',
         peso: '',
+<<<<<<< HEAD
         modalidade: '',
         historico_lesoes: '',
       })
     } catch (error) {
       const msg = error.response?.data?.erro || 'Erro ao cadastrar atleta.'
       setErro(msg)
+=======
+        historico_lesoes: ''
+      })
+    } catch (error) {
+      setErro('Erro ao cadastrar atleta.')
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
     } finally {
       setLoading(false)
     }
@@ -81,6 +109,7 @@ function CadastroAtleta() {
           required
         />
 
+<<<<<<< HEAD
         <label>Modalidade</label>
         <input
           name="modalidade"
@@ -89,6 +118,8 @@ function CadastroAtleta() {
           onChange={handleChange}
         />
 
+=======
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
         <label>Idade</label>
         <input
           name="idade"
@@ -99,7 +130,11 @@ function CadastroAtleta() {
           onChange={handleChange}
         />
 
+<<<<<<< HEAD
         <label>Peso (kg)</label>
+=======
+        <label>Peso</label>
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
         <input
           name="peso"
           type="number"
@@ -118,6 +153,7 @@ function CadastroAtleta() {
           onChange={handleChange}
         />
 
+<<<<<<< HEAD
         {mensagem && (
           <div className="success-message">{mensagem}</div>
         )}
@@ -138,6 +174,19 @@ function CadastroAtleta() {
 
         <button type="submit" disabled={loading}>
           {loading ? 'Salvando...' : 'Cadastrar Atleta'}
+=======
+        {mensagem && <div className="success-message">{mensagem}</div>}
+        {senhaTemporaria && (
+          <div className="success-message">
+            Senha temporária: <strong>{senhaTemporaria}</strong>
+          </div>
+        )}
+        {erro && <div className="error-message">{erro}</div>}
+
+        <button type="submit" className="login-main-button" disabled={loading}>
+          {loading ? 'Salvando...' : 'Cadastrar Atleta'}
+          {!loading && <ArrowRight size={19} />}
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
         </button>
       </form>
     </section>

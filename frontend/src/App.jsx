@@ -3,7 +3,10 @@ import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 
 import Login from './pages/login'
+<<<<<<< HEAD
 import PrimeiroAcesso from './pages/PrimeiroAcesso'
+=======
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
 import Dashboard from './pages/Dashboard'
 import HumanBody3D from './pages/HumanBody3d'
 import DashboardTecnico from './pages/DashboardTecnico'
@@ -28,6 +31,7 @@ function App() {
     setTela('dashboard')
   }
 
+<<<<<<< HEAD
   function handleSenhaTrocada() {
     // Remove a flag localmente e libera acesso ao dashboard
     const usuarioAtualizado = { ...usuario, senha_provisoria: false }
@@ -35,6 +39,8 @@ function App() {
     setUsuario(usuarioAtualizado)
   }
 
+=======
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
   function handleLogout() {
     localStorage.removeItem('token')
     localStorage.removeItem('usuario')
@@ -65,7 +71,11 @@ function App() {
         {tela === 'dashboard' && usuario.perfil === 'atleta' && (
           <Dashboard atletaId={usuario.id} />
         )}
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
         {tela === 'corpo3d' && <HumanBody3D atletaId={usuario.id} />}
 
         {tela === 'dashboard' && usuario.perfil === 'tecnico' && (
@@ -87,8 +97,12 @@ function App() {
         )}
 
         {tela === 'detalhes-atleta' && (
+<<<<<<< HEAD
           // atletaId em vez de atleta — DetalhesAtleta agora busca da API
           <DetalhesAtleta atletaId={atletaSelecionado} />
+=======
+          <DetalhesAtleta atleta={atletaSelecionado} />
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
         )}
 
         {tela === 'cadastro-atleta' && (
@@ -99,4 +113,9 @@ function App() {
   )
 }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 683d25ea749816f6f9fb72d2dfca7db1311976c0
 export default App
