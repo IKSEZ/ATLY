@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 
 import Login from './pages/login'
+import Cadastro from './pages/Cadastro' // 1. IMPORTAR A NOVA TELA DE CADASTRO DE TÉCNICOS
 import PrimeiroAcesso from './pages/PrimeiroAcesso'
 import Dashboard from './pages/Dashboard'
 import HumanBody3D from './pages/HumanBody3d'
@@ -22,6 +23,9 @@ function App() {
 
   const [tela, setTela] = useState('dashboard')
   const [atletaSelecionado, setAtletaSelecionado] = useState(null)
+  
+  // 2. NOVO ESTADO: Controla qual tela pública exibir quando deslogado
+  const [telaPublica, setTelaPublica] = useState('login') 
 
   function handleLoginSuccess(usuarioData) {
     setUsuario(usuarioData)
@@ -29,7 +33,6 @@ function App() {
   }
 
   function handleSenhaTrocada() {
-    // Remove a flag localmente e libera acesso ao dashboard
     const usuarioAtualizado = { ...usuario, senha_provisoria: false }
     localStorage.setItem('usuario', JSON.stringify(usuarioAtualizado))
     setUsuario(usuarioAtualizado)
@@ -41,10 +44,26 @@ function App() {
     setUsuario(null)
     setTela('dashboard')
     setAtletaSelecionado(null)
+    setTelaPublica('login') // Garante que volta para o login ao deslogar
   }
 
+  // 3. ALTERAÇÃO DO FLUXO PÚBLICO (DESLOGADO)
   if (!usuario) {
-    return <Login onLoginSuccess={handleLoginSuccess} />
+    if (telaPublica === 'cadastro') {
+      return (
+        <Cadastro 
+          onVoltarParaLogin={() => setTelaPublica('login')} 
+          onCadastroSucesso={() => setTelaPublica('login')} 
+        />
+      )
+    }
+
+    return (
+      <Login 
+        onLoginSuccess={handleLoginSuccess} 
+        onAlternarParaCadastro={() => setTelaPublica('cadastro')} 
+      />
+    )
   }
 
   // Atleta com senha temporária: bloqueia o app inteiro até trocar a senha
@@ -87,7 +106,6 @@ function App() {
         )}
 
         {tela === 'detalhes-atleta' && (
-          // atletaId em vez de atleta — DetalhesAtleta agora busca da API
           <DetalhesAtleta atletaId={atletaSelecionado} />
         )}
 

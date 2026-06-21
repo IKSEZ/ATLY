@@ -6,7 +6,8 @@ import {
   EyeOff
 } from 'lucide-react'
 
-function Login({ onLoginSuccess }) {
+// Adicionada a prop onAlternarParaCadastro
+function Login({ onLoginSuccess, onAlternarParaCadastro }) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -30,8 +31,6 @@ function Login({ onLoginSuccess }) {
       localStorage.setItem('token', tokenAutenticacao)
       localStorage.setItem('usuario', JSON.stringify(usuario))
 
-      // Passa o usuario completo — incluindo senha_provisoria
-      // O componente pai decide redirecionar para PrimeiroAcesso ou dashboard
       onLoginSuccess(usuario)
     } catch (error) {
       console.error('Erro no login:', error)
@@ -109,9 +108,17 @@ function Login({ onLoginSuccess }) {
           </button>
         </form>
 
-        <p className="login-note">
-          Use um usuário real do sistema. O acesso demo foi removido para evitar tokens inválidos.
-        </p>
+        {/* LINK PARA IR PARA A TELA DE CADASTRO */}
+        <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#666' }}>
+          Não tem uma conta?{' '}
+          <button 
+            type="button" 
+            onClick={onAlternarParaCadastro}
+            style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontWeight: 'bold', padding: 0 }}
+          >
+            Criar uma conta
+          </button>
+        </div>
 
       </section>
     </main>
