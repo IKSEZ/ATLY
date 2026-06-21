@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import api from '../services/api'
 
-// atletaId: ID do atleta — busca do endpoint GET /atletas/:id/mapa-corporal
 function HumanBodyRiskMap({ atletaId }) {
+  // CORREÇÃO 1: Inicialização explícita e segura dos arrays
   const [dados, setDados] = useState({ regioes: [], alertas: [] })
   const [regiaoSelecionada, setRegiaoSelecionada] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -18,11 +18,15 @@ function HumanBodyRiskMap({ atletaId }) {
 
       try {
         const response = await api.get(`/atletas/${atletaId}/mapa-corporal`)
-        const { regioes, alertas } = response.data
+        
+        // CORREÇÃO 2: Garante arrays vazios como plano de fundo (fallback) caso venha nulo do backend
+        const regioes = response.data?.regioes || []
+        const alertas = response.data?.alertas || []
 
         setDados({ regioes, alertas })
-        setRegiaoSelecionada(regioes[0] || null)
+        setRegiaoSelecionada(regioes.length > 0 ? regioes[0] : null)
       } catch (err) {
+        console.error('Erro ao carregar mapa corporal:', err)
         setErro('Não foi possível carregar o mapa corporal.')
       } finally {
         setLoading(false)
@@ -69,9 +73,10 @@ function HumanBodyRiskMap({ atletaId }) {
                 />
 
                 <div className="body3d-heatmap-layer">
-                  {dados.regioes.map((regiao) => (
+                  {/* CORREÇÃO 3: Verificação opcional de segurança (.map seguro) */}
+                  {(dados.regioes || []).map((regiao) => (
                     <button
-                      key={regiao.id}
+                      key={regiao.id || Math.random()}
                       className={`hotspot risco-${classeRisco(regiao.nivel)}${
                         regiaoSelecionada?.id === regiao.id ? ' hotspot-selected' : ''
                       }`}
@@ -98,20 +103,21 @@ function HumanBodyRiskMap({ atletaId }) {
                   </>
                 ) : (
                   <p>
-                    {dados.regioes.length === 0
+                    {!dados.regioes || dados.regioes.length === 0
                       ? 'Nenhuma região de risco identificada para este atleta.'
                       : 'Selecione uma região no mapa para ver os detalhes.'}
                   </p>
                 )}
               </div>
 
-              {dados.regioes.map((regiao) => (
+              {/* CORREÇÃO 4: Laço alternativo mapeado com segurança */}
+              {(dados.regioes || []).map((regiao) => (
                 <button
                   type="button"
                   className={`region-card${
                     regiaoSelecionada?.id === regiao.id ? ' selected' : ''
                   }`}
-                  key={regiao.id}
+                  key={regiao.id || Math.random()}
                   onClick={() => setRegiaoSelecionada(regiao)}
                 >
                   <span className={`dot ${classeRisco(regiao.nivel)}`} />
@@ -132,16 +138,16 @@ function HumanBodyRiskMap({ atletaId }) {
           <div className="side-title">
             <AlertTriangle />
             <h3>Alertas Ativos</h3>
-            <strong>{dados.alertas.length}</strong>
+            <strong>{dados.alertas?.length || 0}</strong>
           </div>
 
-          {dados.alertas.length === 0 ? (
-            <div className="empty-side">Nenhum alerta ativo.</div>
+          {!dados.alertas || dados.alertas.length === 0 ? (
+            <div className="empty-side" style={{ padding: '20px 0', color: 'var(--muted)', textAlign: 'center' }}>Nenhum alerta ativo.</div>
           ) : (
             dados.alertas.map((alerta) => (
               <div
                 className={`alert-body-item ${classeRisco(alerta.nivel)}`}
-                key={alerta.id}
+                key={alerta.id || Math.random()}
               >
                 <div>
                   <h4>{alerta.area}</h4>

@@ -8,9 +8,10 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
   const [atletas, setAtletas] = useState([])
   const [loading, setLoading] = useState(true)
 
-async function carregarAtletas() {
+  async function carregarAtletas() {
     try {
-      // Adicionamos o timestamp na URL. Isso engana o cache do navegador sem quebrar o CORS!
+      setLoading(true)
+      // O timestamp bura o cache sem quebrar o CORS
       const response = await api.get(`/atletas?_t=${Date.now()}`)
       
       console.log('Resposta da API /atletas:', response.data)
@@ -33,12 +34,29 @@ async function carregarAtletas() {
   }
 
   useEffect(() => {
-    carregarAtletas()
+    if (tecnicoId) {
+      carregarAtletas()
+    }
   }, [tecnicoId])
 
   function abrirAtleta(atleta) {
-    setAtletaSelecionado(atleta.id)
-    setTela('detalhes-atleta')
+    try {
+      if (!atleta) return;
+
+      // Busca o ID em todas as chaves possíveis para evitar falhas de nomenclatura do banco
+      const idDetectado = atleta.id ?? atleta.id_atleta ?? atleta.atleta_id ?? atleta.usuario_id ?? atleta.id_usuario;
+
+      console.log("ID detectado no clique:", idDetectado);
+
+      if (idDetectado !== undefined && idDetectado !== null) {
+        setAtletaSelecionado(idDetectado)
+        setTela('detalhes-atleta')
+      } else {
+        console.error("Não foi possível extrair um ID válido do objeto do atleta:", atleta)
+      }
+    } catch (err) {
+      console.error("Erro no método abrirAtleta:", err)
+    }
   }
 
   return (
@@ -48,7 +66,6 @@ async function carregarAtletas() {
         subtitulo="Acompanhe os atletas vinculados e seus níveis de risco."
       />
 
-      {/* Container usando as classes nativas do seu App.css */}
       <div className="card full-card">
         <h3 style={{ 
           fontSize: '18px', 
@@ -69,7 +86,7 @@ async function carregarAtletas() {
           <div className="athletes-grid">
             {atletas.map((atleta) => (
               <div 
-                key={atleta.id} 
+                key={atleta.id || Math.random()} 
                 className="athlete-card"
                 style={{
                   background: 'var(--card-light)',
@@ -137,8 +154,9 @@ async function carregarAtletas() {
                   <RiskBadge risco={atleta.nivel_risco} />
                 </div>
 
-                {/* Linha Inferior: Botão Temático Cyberpunk */}
+                {/* BOTÃO CORRIGIDO: Removido os filtros de brilho direto que travavam o clique */}
                 <button
+                  type="button"
                   onClick={() => abrirAtleta(atleta)}
                   style={{
                     width: '100%',
@@ -150,10 +168,9 @@ async function carregarAtletas() {
                     fontSize: '14px',
                     fontWeight: '700',
                     boxShadow: '0 4px 15px rgba(109, 40, 217, 0.25)',
-                    transition: 'all 0.2s ease'
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s ease'
                   }}
-                  onMouseEnter={(e) => e.target.style.filter = 'brightness(1.15)'}
-                  onMouseLeave={(e) => e.target.style.filter = 'brightness(1)'}
                 >
                   Verificar Performance
                 </button>

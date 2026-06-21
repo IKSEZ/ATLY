@@ -26,6 +26,23 @@ function App() {
   const [atletaSelecionado, setAtletaSelecionado] = useState(null)
   const [telaPublica, setTelaPublica] = useState('login') 
 
+  // MONITOR DE ESTADO GLOBAL (Rastreador de Bugs)
+  // Esse bloco vai disparar toda vez que o ID selecionado ou a tela mudar
+  require('react').useEffect(() => {
+    try {
+      console.log("--- RASTREAMENTO DE ESTADO DO APP ---");
+      console.log(`Tela ativa no sistema: "${tela}"`);
+      console.log(`Valor atual do atletaSelecionado no App.jsx:`, atletaSelecionado);
+      
+      if (tela === 'detalhes-atleta' && (atletaSelecionado === null || atletaSelecionado === undefined)) {
+        console.error("ALERTA: O sistema mudou para a tela 'detalhes-atleta', mas o ID do atleta está VAZIO. A tela vai quebrar em branco.");
+      }
+      console.log("-------------------------------------");
+    } catch (err) {
+      console.error("Erro interno no monitor de log do App.jsx:", err);
+    }
+  }, [tela, atletaSelecionado]);
+
   function handleLoginSuccess(usuarioData) {
     setUsuario(usuarioData)
     setTela('dashboard')
@@ -102,8 +119,13 @@ function App() {
           <Relatorios usuario={usuario} atletaSelecionado={atletaSelecionado} />
         )}
 
+        {/* CORREÇÃO AQUI: Enviamos tanto atletaId quanto atletaID para blindar contra qualquer diferença nos arquivos */}
         {tela === 'detalhes-atleta' && (
-          <DetalhesAtleta atletaId={atletaSelecionado} />
+          <DetalhesAtleta 
+            atletaId={atletaSelecionado} 
+            atletaID={atletaSelecionado} 
+            atletaSelecionado={atletaSelecionado}
+          />
         )}
 
         {tela === 'cadastro-atleta' && (

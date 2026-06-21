@@ -4,15 +4,16 @@ import Header from '../components/Header'
 import HumanBodyRiskMap from '../components/HumanBodyRiskMap'
 import StatCard from '../components/StatCard'
 
-// atletaId: ID do atleta selecionado (número)
-// Substituiu a prop "atleta" direta - agora busca da API
-function DetalhesAtleta({ atletaID }) {
-  const [atleta, setAtleta] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState('');
+function DetalhesAtleta({ atletaID, atletaId, atletaSelecionado }) {
+  // Captura o ID vindo de qualquer variação de nome do componente pai
+  const idReal = atletaID || atletaId || atletaSelecionado
+
+  const [atleta, setAtleta] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
-    if (!atletaID) return
+    if (!idReal) return
 
     async function buscarAtleta() {
       setLoading(true)
@@ -20,9 +21,11 @@ function DetalhesAtleta({ atletaID }) {
       setAtleta(null)
 
       try {
-        const response = await api.get(`/atletas/${atletaID}`)
-        setAtleta(response.data.atleta)
+        const response = await api.get(`/atletas/${idReal}`)
+        // Define o estado com os dados recebidos do backend
+        setAtleta(response.data.atleta || response.data)
       } catch (err) {
+        console.error('Erro ao buscar detalhes do atleta:', err)
         setErro('Não foi possível carregar os dados do atleta.')
       } finally {
         setLoading(false)
@@ -30,54 +33,55 @@ function DetalhesAtleta({ atletaID }) {
     }
 
     buscarAtleta()
-  }, [atletaID])
+  }, [idReal])
 
-    if (atletaID) {
-      return (
-        <section>
-          <Header
-            titulo="Detalhes do Atleta"
-            subtitulo="Selecione um atleta no painel técnico."
-          />
-          <div className="empty-state">Nenhum altleta selecionado.</div>
-        </section>
-      )
-    }
+  // Se realmente não houver ID selecionado, exibe o estado vazio
+  if (!idReal) {
+    return (
+      <section>
+        <Header
+          titulo="Detalhes do Atleta"
+          subtitulo="Selecione um atleta no painel técnico."
+        />
+        <div className="empty-state">Nenhum atleta selecionado.</div>
+      </section>
+    )
+  }
 
-    if (loading) {
-      return (
-        <section>
-          <Header titulo="Carregando..." subtitulo="Buscando dados do atleta." />
-          <div className="empty-state">Carregando...</div>
-        </section>
-      )
-    }
+  if (loading) {
+    return (
+      <section>
+        <Header titulo="Carregando..." subtitulo="Buscando dados do atleta." />
+        <div className="empty-state">Carregando...</div>
+      </section>
+    )
+  }
 
-    if (erro) {
-      return (
-        <section>
-          <Header titulo="Erro" subtitulo="Não foi possível carregar o atleta." />
-          <div className="error-message">{erro}</div>
-        </section>
-      )
-    }
+  if (erro) {
+    return (
+      <section>
+        <Header titulo="Erro" subtitulo="Não foi possível carregar o atleta." />
+        <div className="error-message">{erro}</div>
+      </section>
+    )
+  }
 
-    if (!atleta) return null
+  if (!atleta) return null
 
-      return (
-        <section>
-          <Header
-            titulo={atleta.nome}
-              subtitulo={atleta.modalidade || 'Atleta vinculado ao técnico'}
-              />
+  return (
+    <section>
+      <Header
+        titulo={atleta.nome || 'Visualização do Atleta'}
+        subtitulo={atleta.modalidade || 'Atleta vinculado ao técnico'}
+      />
 
-        <div className="cards">
-          <statCard 
+      <div className="cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+        <StatCard 
           titulo="ACWR"
           valor={atleta.acwr ?? '--'} 
           descricao="Índice atual" 
-          />
-          <StatCard
+        />
+        <StatCard
           titulo="Risco"
           valor={atleta.nivel_risco ?? '—'}
           descricao="Classificação atual"
@@ -92,19 +96,19 @@ function DetalhesAtleta({ atletaID }) {
           valor={atleta.idade ? `${atleta.idade} anos` : '—'}
           descricao="Dados físicos"
         />
-          </div>
+      </div>
 
-        <div className="dashboard-grid">
-        {/* Passa o ID para o mapa buscar do endpoint real */}
-        <HumanBodyRiskMap atletaId={atletaId} />
+      <div className="dashboard-grid">
+        {/* Passa o ID correto para o mapa de calor renderizar o corpo humano */}
+        <HumanBodyRiskMap atletaId={idReal} />
  
-        <div className="card full-card">
+        <div className="card full-card" style={{ marginTop: '20px' }}>
           <h3>Histórico de Lesões</h3>
           <p>{atleta.historico_lesoes || 'Nenhum histórico informado.'}</p>
         </div>
 
         {atleta.mensagem && (
-          <div className="card full-card">
+          <div className="card full-card" style={{ marginTop: '20px' }}>
             <h3>Análise IA</h3>
             <p>{atleta.mensagem}</p>
           </div>
