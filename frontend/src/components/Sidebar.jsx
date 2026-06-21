@@ -9,6 +9,7 @@ import {
   Users,
   Accessibility,
   Weight,
+  Link2,
 } from 'lucide-react'
 
 function Sidebar({ usuario, tela, setTela, onLogout }) {
@@ -25,6 +26,7 @@ function Sidebar({ usuario, tela, setTela, onLogout }) {
   const menuTecnico = [
     { id: 'dashboard', label: 'Painel Técnico', icon: Users },
     { id: 'cadastro-atleta', label: 'Cadastrar Atleta', icon: Plus },
+    { id: 'vincular-atleta', label: 'Vincular Atleta', icon: Link2 }, // 2. ITEM ADICIONADO AQUI
     { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
     { id: 'relatorios', label: 'Relatórios', icon: BarChart3 }
   ]

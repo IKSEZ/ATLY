@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 
 import Login from './pages/login'
-import Cadastro from './pages/Cadastro' // 1. IMPORTAR A NOVA TELA DE CADASTRO DE TÉCNICOS
+import Cadastro from './pages/Cadastro' 
 import PrimeiroAcesso from './pages/PrimeiroAcesso'
 import Dashboard from './pages/Dashboard'
 import HumanBody3D from './pages/HumanBody3d'
@@ -13,6 +13,7 @@ import Alertas from './pages/Alertas'
 import Relatorios from './pages/Relatorios'
 import DetalhesAtleta from './pages/DetalhesAtleta'
 import CadastroAtleta from './pages/CadastroAtleta'
+import VincularAtleta from './pages/VincularAtleta' // 1. IMPORTAR A NOVA TELA
 
 import './App.css'
 
@@ -23,8 +24,6 @@ function App() {
 
   const [tela, setTela] = useState('dashboard')
   const [atletaSelecionado, setAtletaSelecionado] = useState(null)
-  
-  // 2. NOVO ESTADO: Controla qual tela pública exibir quando deslogado
   const [telaPublica, setTelaPublica] = useState('login') 
 
   function handleLoginSuccess(usuarioData) {
@@ -44,10 +43,9 @@ function App() {
     setUsuario(null)
     setTela('dashboard')
     setAtletaSelecionado(null)
-    setTelaPublica('login') // Garante que volta para o login ao deslogar
+    setTelaPublica('login') 
   }
 
-  // 3. ALTERAÇÃO DO FLUXO PÚBLICO (DESLOGADO)
   if (!usuario) {
     if (telaPublica === 'cadastro') {
       return (
@@ -66,7 +64,6 @@ function App() {
     )
   }
 
-  // Atleta com senha temporária: bloqueia o app inteiro até trocar a senha
   if (usuario.senha_provisoria) {
     return <PrimeiroAcesso onSenhaTrocada={handleSenhaTrocada} />
   }
@@ -111,6 +108,11 @@ function App() {
 
         {tela === 'cadastro-atleta' && (
           <CadastroAtleta tecnicoId={usuario.id} />
+        )}
+
+        {/* 2. ADICIONAR A RENDERIZAÇÃO DA TELA DE VÍNCULO */}
+        {tela === 'vincular-atleta' && (
+          <VincularAtleta tecnicoId={usuario.id} />
         )}
       </main>
     </div>
