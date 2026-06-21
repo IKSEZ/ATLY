@@ -115,29 +115,34 @@ async function analisarAtleta(atletaId) {
 
 // ----------------------------------------------------------
 // listar — somente técnico, vê apenas seus atletas vinculados
-// Lê acwr e nivel_risco do cache em atleta_perfil (sem chamar IA)
+// Corrigido com LEFT JOIN para listar mesmo atletas sem perfil completo
 // ----------------------------------------------------------
 const listar = async (req, res) => {
-  const { rows } = await pool.query(
-    `SELECT 
-      a.id, 
-      a.nome, 
-      a.email, 
-      ap.idade, 
-      ap.peso, 
-      ap.historico_lesoes,
-      ap.acwr,
-      ap.nivel_risco,
-      ap.carga_aguda,
-      ap.carga_cronica,
-      ap.analise_em
-     FROM usuarios a
-     JOIN tecnico_atleta ta ON ta.atleta_id = a.id
-     JOIN atleta_perfil ap ON ap.usuario_id = a.id
-     WHERE ta.tecnico_id = $1 AND a.perfil = 'atleta'`,
-    [req.usuario.id]
-  );
-  res.json({ atletas: rows });
+  try {
+    const { rows } = await pool.query(
+      `SELECT 
+        a.id, 
+        a.nome, 
+        a.email, 
+        ap.idade, 
+        ap.peso, 
+        ap.historico_lesoes,
+        ap.acwr,
+        COALESCE(ap.nivel_risco, 'sem dados') AS nivel_risco, -- Garante um texto padrão se for nulo
+        ap.carga_aguda,
+        ap.carga_cronica,
+        ap.analise_em
+       FROM usuarios a
+       JOIN tecnico_atleta ta ON ta.atleta_id = a.id
+       LEFT JOIN atleta_perfil ap ON ap.usuario_id = a.id -- Mudado para LEFT JOIN
+       WHERE ta.tecnico_id = $1 AND a.perfil = 'atleta'`,
+      [req.usuario.id]
+    );
+    res.json({ atletas: rows });
+  } catch (error) {
+    console.error('Erro na query listar atletas:', error);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
 };
 
 // ----------------------------------------------------------
