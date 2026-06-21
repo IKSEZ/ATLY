@@ -22,16 +22,19 @@ const app = express();
 // ----------------------------------------------------------
 
 // helmet: adiciona headers HTTP de segurança automaticamente
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 
-// cors: permite que o front-end (React) acesse a API
-// Allow frontend during development (supports Vite default ports 5173/5174)
+// Garanta que o CORS capture o OPTIONS corretamente antes de qualquer outra validação
 if (process.env.NODE_ENV !== 'production') {
   app.use(cors({ origin: true, credentials: true }));
 } else {
   app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || 'https://aatly.netlify.app', 
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Força os métodos aceitos
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }));
 }
 
