@@ -1,16 +1,12 @@
 import { useState } from 'react'
 import api from '../services/api'
-import {
-  ArrowRight,
-  Eye,
-  EyeOff,
-  ArrowLeft
-} from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 
 function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [perfil, setPerfil] = useState('tecnico') // <-- Novo estado (começa como tecnico)
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
@@ -22,16 +18,14 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
     setCarregando(true)
 
     try {
-      // Faz o disparo POST para a rota de cadastro de técnicos
       await api.post('/auth/cadastro', {
         nome,
         email,
-        senha
+        senha,
+        perfil // <-- Enviando o perfil selecionado
       })
 
       setSucesso(true)
-      
-      // Aguarda 2 segundos exibindo mensagem de sucesso e retorna para o login
       setTimeout(() => {
         onCadastroSucesso()
       }, 2000)
@@ -66,8 +60,8 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
         </div>
 
         <div className="login-heading">
-          <h2>Cadastro de Técnico</h2>
-          <p>Crie sua conta para gerenciar e monitorar seus atletas</p>
+          <h2>Criar Conta no ATLY</h2>
+          <p>Preencha os dados abaixo para se cadastrar</p>
         </div>
 
         {sucesso ? (
@@ -98,6 +92,28 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
               />
             </label>
 
+            {/* NOVO CAMPO: SELEÇÃO DE PERFIL */}
+            <label>
+              Tipo de Perfil
+              <select
+                value={perfil}
+                onChange={(e) => setPerfil(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '6px',
+                  border: '1px solid #ddd',
+                  backgroundColor: '#fff',
+                  marginTop: '5px',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="tecnico">Técnico / Treinador</option>
+                <option value="atleta">Atleta</option>
+              </select>
+            </label>
+
             <label>
               Senha
               <div className="password-input-box">
@@ -109,7 +125,6 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
                   required
                   minLength={8}
                 />
-
                 <button
                   type="button"
                   onClick={() => setMostrarSenha(!mostrarSenha)}
