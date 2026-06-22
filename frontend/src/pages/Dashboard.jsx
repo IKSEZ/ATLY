@@ -27,7 +27,6 @@ function Dashboard({ atletaId }) {
       
       const token = localStorage.getItem('token')
 
-      // Executa as chamadas da API em paralelo de forma segura
       const [resAnalise, resTreinos] = await Promise.all([
         api.get(`/treinos/atleta/${atletaId}/analise`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -36,19 +35,21 @@ function Dashboard({ atletaId }) {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]).catch(err => {
-        // Intercepta falhas de rede ou serviço de IA fora do ar
         throw new Error("Falha na comunicação com o servidor de dados. " + err.message);
       })
 
-      // Armazena a análise tratando possíveis estruturas vazias
+      let dadosAnalise = null
       if (resAnalise && resAnalise.data) {
-        setAnalise(resAnalise.data.analise || resAnalise.data)
+        dadosAnalise = resAnalise.data.analise || resAnalise.data
+        setAnalise(dadosAnalise)
       } else {
         setAnalise(null)
       }
 
-      // Garante que treinos sempre seja um Array, mesmo se vier nulo
-      if (resTreinos && resTreinos.data) {
+      // CORREÇÃO CRÍTICA: Prioriza os treinos com risco individual calculados pelo Python (app.py)
+      if (dadosAnalise && dadosAnalise.treinos) {
+        setTreinos(dadosAnalise.treinos)
+      } else if (resTreinos && resTreinos.data) {
         setTreinos(resTreinos.data.treinos || resTreinos.data || [])
       } else {
         setTreinos([])
@@ -98,7 +99,6 @@ function Dashboard({ atletaId }) {
         </div>
       )}
 
-      {/* Grid de Cards de Estatísticas com Fallbacks de Segurança */}
       <div className="cards">
         <StatCard 
           titulo="ACWR" 
@@ -123,22 +123,19 @@ function Dashboard({ atletaId }) {
         />
       </div>
 
-      {/* Grid Central: Gráfico de Evolução + Componente de Visualização do Corpo */}
       <div className="dashboard-grid">
         <PerformanceChart treinos={treinos || []} />
-        {/* Passa o ID correto para o mapa buscar o histórico estruturado da rota de calor */}
         <HumanBodyRiskMap atletaId={atletaId} />
       </div>
 
-      {/* Card Informativo do Diagnóstico emitido pela IA */}
       <div className="card full-card">
         <h3>Aviso da Análise</h3>
         <p>{analise?.mensagem || 'Nenhum alerta ou recomendação emitido pela IA para o período atual.'}</p>
       </div>
 
-      {/* Tabela de listagem do Histórico Recente */}
       <div className="card full-card">
         <h3>Histórico de Treinos</h3>
+        {/* Passa o risco geral macro como fallback */}
         <TrainingTable treinos={treinos || []} riscoGeral={analise?.nivel_risco || 'baixo'} />
       </div>
     </section>

@@ -5,7 +5,6 @@ function TrainingTable({ treinos = [], riscoGeral = 'baixo' }) {
     return <div className="empty-state">Nenhum treino registrado ainda.</div>
   }
 
-  // Garante que o risco seja uma string limpa (evita quebra se vier objeto do banco)
   const riscoDoAtleta = typeof riscoGeral === 'string' 
     ? riscoGeral 
     : (riscoGeral?.nivel_risco ?? riscoGeral?.risco ?? riscoGeral?.nivel ?? 'baixo');
@@ -38,7 +37,7 @@ function TrainingTable({ treinos = [], riscoGeral = 'baixo' }) {
               <td>{treino.volume || '-'}</td>
               <td>{treino.carga || '-'}</td>
               <td>
-                {/* Se o treino não tiver risco próprio no banco, herda o risco calculado da IA */}
+                {/* IMPORTANTE: Primeiro tenta usar o risco do treino vindo do Python. Se não existir, usa o macro */}
                 <RiskBadge risco={treino.nivel_risco ?? treino.risco ?? riscoDoAtleta} />
               </td>
             </tr>

@@ -152,6 +152,9 @@ const listarPorAtleta = async (req, res) => {
 // Busca o histórico de treinos e envia para o serviço Python
 // que calcula o ACWR e retorna o nível de risco
 // ----------------------------------------------------------
+// ----------------------------------------------------------
+// analisarCarga — CORRIGIDO PARA ENVIAR E REPASSAR DADOS DA IA
+// ----------------------------------------------------------
 const analisarCarga = async (req, res) => {
   const { atletaId } = req.params;
 
@@ -159,13 +162,13 @@ const analisarCarga = async (req, res) => {
     return res.status(403).json({ erro: 'Acesso negado' });
   }
 
-  // Busca as últimas 4 semanas de treino para o cálculo do ACWR
+  // CORREÇÃO 1: Seleciona todas as colunas vitais para o Python conseguir calcular o risco linha por linha
   const { rows: treinos } = await pool.query(
-    `SELECT data_treino, carga
+    `SELECT id, data_treino, carga, tipo, intensidade, duracao_min, volume
      FROM sessoes_treino
      WHERE atleta_id = $1
        AND data_treino >= NOW() - INTERVAL '28 days'
-     ORDER BY data_treino`,
+     ORDER BY data_treino DESC`,
     [atletaId]
   );
 
@@ -175,10 +178,9 @@ const analisarCarga = async (req, res) => {
     [atletaId]
   );
 
-  // Chama o microserviço Python de IA
-  // O Python faz o cálculo pesado e retorna { acwr, nivel_risco, alerta }
   let analise;
   try {
+    // Chama o microserviço Python de IA passando o payload completo
     analise = await chamarServicoIA(atletaId, treinos, perfil[0] || {});
   } catch (err) {
     console.error('IA service error:', err.message);
@@ -197,7 +199,18 @@ const analisarCarga = async (req, res) => {
     );
   }
 
-  res.json({ analise });
+  // CORREÇÃO 2: Garante o envio da estrutura limpa contendo o array estruturado de treinos individuais analisados pela IA
+  res.json({
+    analise: {
+      acwr: analise.acwr,
+      carga_aguda_media: analise.carga_aguda_media,
+      carga_cronica_media: analise.carga_cronica_media,
+      carga_hoje: analise.carga_hoje,
+      nivel_risco: analise.nivel_risco,
+      mensagem: analise.mensagem,
+      treinos: analise.treinos // Envia a lista mista calculada pelo app.py para o React
+    }
+  });
 };
 
 module.exports = { registrar, listarPorAtleta, analisarCarga };

@@ -132,6 +132,6 @@ def analisar(payload: AnaliseRequest):
         "carga_cronica_media": round(carga_cronica, 1),
         "carga_hoje": carga_hoje,
         "nivel_risco": nivel_macro,
-        "mensagem": message if 'message' in locals() else mensagem,
+        "mensagem": mensagem,
         "treinos": treinos_analisados_resultado # Retorna a lista calculada misturando os riscos
     }
