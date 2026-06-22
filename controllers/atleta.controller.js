@@ -140,6 +140,40 @@ const listar = async (req, res) => {
   }
 };
 
+const buscarPorEmail = async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ erro: 'O e-mail é obrigatório para a busca.' });
+  }
+
+  try {
+    // Busca o usuário pelo e-mail, garantindo que ele seja um atleta
+    const { rows } = await pool.query(
+      `SELECT id, nome, email, perfil 
+       FROM usuarios 
+       WHERE LOWER(email) = LOWER($1) AND perfil = 'atleta'`,
+      [email.trim()]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ erro: 'Atleta não encontrado com este e-mail.' });
+    }
+
+    // Retorna o ID e o Nome para o frontend usar
+    res.json({
+      id: rows[0].id,
+      nome: rows[0].nome
+    });
+  } catch (error) {
+    console.error('Erro ao buscar atleta por e-mail:', error);
+    res.status(500).json({ erro: 'Erro interno ao buscar atleta.' });
+  }
+};
+
+// Não esqueça de adicionar no module.exports no fim do arquivo:
+// module.exports = { ..., buscarPorEmail };
+
 // ----------------------------------------------------------
 // buscarPorId — Detalhes do perfil do atleta
 // ----------------------------------------------------------

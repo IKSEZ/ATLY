@@ -1,75 +1,109 @@
-import { useState } from 'react'
-import api from '../services/api'
-import { Link2, ArrowRight } from 'lucide-react'
+import { useState } from 'react';
+import api from '../services/api';
 
-function VincularAtleta({ tecnicoId }) {
-  const [atletaId, setAtletaId] = useState('')
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState('')
-  const [sucesso, setSucesso] = useState('')
+function VincularAtleta() {
+  const [emailBusca, setEmailBusca] = useState('');
+  const [atletaEncontrado, setAtletaEncontrado] = useState(null);
+  const [erroBusca, setErroBusca] = useState('');
+  const [loadingBusca, setLoadingBusca] = useState(false);
+  const [sucessoVinculo, setSucessoVinculo] = useState('');
 
+  // Função que busca o ID no backend usando o e-mail
+  async function lidarBuscaEmail(e) {
+    const emailDigitado = e.target.value;
+    setEmailBusca(emailDigitado);
+
+    // Só busca se o e-mail parecer minimamente válido (contiver @ e .)
+    if (emailDigitado.includes('@') && emailDigitado.includes('.')) {
+      setLoadingBusca(true);
+      setErroBusca('');
+      setAtletaEncontrado(null);
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await api.get(`/usuarios/buscar-por-email?email=${encodeURIComponent(emailDigitado.trim())}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Se achou, guarda o ID e o Nome no estado
+        setAtletaEncontrado(response.data); 
+      } catch (err) {
+        if (err.response?.status === 404) {
+          setErroBusca('Nenhum atleta cadastrado com este e-mail.');
+        } else {
+          setErroBusca('Erro ao validar e-mail.');
+        }
+      } finally {
+        setLoadingBusca(false);
+      }
+    } else {
+      setAtletaEncontrado(null);
+    }
+  }
+
+  // Função que envia o vínculo usando o ID que descobrimos por trás dos panos
   async function handleVincular(e) {
-    e.preventDefault()
-    setErro('')
-    setSucesso('')
-    setCarregando(true)
+    e.preventDefault();
+    if (!atletaEncontrado) return;
 
     try {
-      // Dispara a requisição para a rota específica informada
-      // Passando o tecnicoId no body caso sua API precise saber quem está vinculando
-      await api.post(`/atletas/${atletaId}/vincular`, {
-        tecnicoId: tecnicoId 
-      })
+      const token = localStorage.getItem('token');
+      // Altere para a sua rota real de vinculação do seu sistema
+      await api.post('/tecnicos/vincular-atleta', {
+        atletaId: atletaEncontrado.id // <-- Envia o ID que o Python/Node precisam!
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-      setSucesso('Atleta vinculado com sucesso à sua lista!')
-      setAtletaId('')
-    } catch (error) {
-      console.error('Erro ao vincular atleta:', error)
-      const msg = error.response?.data?.erro || error.response?.data?.mensagem || 'Erro ao vincular atleta. Verifique o ID.'
-      setErro(msg)
-    } finally {
-      setCarregando(false)
+      setSucessoVinculo(`Atleta ${atletaEncontrado.nome} vinculado com sucesso!`);
+      setEmailBusca('');
+      setAtletaEncontrado(null);
+    } catch (err) {
+      setErroBusca('Falha ao efetuar a vinculação.');
     }
   }
 
   return (
-    <div style={{ maxWidth: '500px', margin: '40px auto', padding: '20px' }} className="card form-card">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-        <Link2 size={24} color="#007bff" />
-        <h1 style={{ margin: 0 }}>Vincular Atleta Existente</h1>
-      </div>
-      <p style={{ color: '#666', marginBottom: '20px' }}>
-        Insira o identificador único do atleta para adicioná-lo ao seu monitoramento.
-      </p>
-
-      <form onSubmit={handleVincular} className="login-form-clean" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          ID do Atleta
+    <div className="card" style={{ maxWidth: '500px', padding: '24px' }}>
+      <h3>Vincular Novo Atleta</h3>
+      
+      <form onSubmit={handleVincular} className="form-card">
+        <label>
+          E-mail do Atleta
           <input
-            type="text"
-            placeholder="Ex: 12345 ou uuid-do-atleta"
-            value={atletaId}
-            onChange={(e) => setAtletaId(e.target.value)}
+            type="email"
+            placeholder="Digite o e-mail exato do atleta..."
+            value={emailBusca}
+            onChange={lidarBuscaEmail}
             required
-            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
           />
         </label>
 
-        {erro && <div className="login-error-clean" style={{ color: 'red', fontSize: '14px' }}>{erro}</div>}
-        {sucesso && <div style={{ color: 'green', fontSize: '14px', fontWeight: 'bold' }}>{sucesso}</div>}
+        {/* FEEDBACKS VISUAIS EM TEMPO REAL */}
+        {loadingBusca && <p style={{ color: 'var(--muted)', fontSize: '13px' }}>Buscando ID do atleta...</p>}
+        
+        {erroBusca && <p className="error-message" style={{ padding: '8px', fontSize: '14px' }}>{erroBusca}</p>}
+        
+        {atletaEncontrado && (
+          <div className="success-message" style={{ padding: '10px', fontSize: '14px', background: 'rgba(34, 197, 94, 0.1)' }}>
+            ✓ <strong>Atleta Localizado!</strong> <br />
+            Nome: {atletaEncontrado.nome} <br />
+            ID Sistema: #{atletaEncontrado.id}
+          </div>
+        )}
 
-        <button
-          type="submit"
-          className="login-main-button"
-          disabled={carregando}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '10px' }}
+        {sucessoVinculo && <p className="success-message">{sucessoVinculo}</p>}
+
+        <button 
+          type="submit" 
+          disabled={!atletaEncontrado}
+          style={{ marginTop: '12px', opacity: atletaEncontrado ? 1 : 0.6 }}
         >
-          {carregando ? 'Vinculando...' : 'Vincular Atleta'}
-          {!carregando && <ArrowRight size={19} />}
+          Confirmar Vinculação
         </button>
       </form>
     </div>
-  )
+  );
 }
 
-export default VincularAtleta
+export default VincularAtleta;

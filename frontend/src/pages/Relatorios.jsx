@@ -9,7 +9,6 @@ function Relatorios({ usuario, atletaSelecionado }) {
   const [analise, setAnalise] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Extrai com segurança o ID caso seja objeto ou o valor bruto caso seja número puro
   const idDoAtletaSelecionado = atletaSelecionado && typeof atletaSelecionado === 'object' 
     ? atletaSelecionado.id 
     : atletaSelecionado;
@@ -35,16 +34,23 @@ function Relatorios({ usuario, atletaSelecionado }) {
       const token = localStorage.getItem('token')
       const headers = { Authorization: `Bearer ${token}` }
 
-      // CORREÇÃO: Faz a busca paralela dos treinos e da análise de risco da IA de forma idêntica ao Dashboard
       const [resTreinos, resAnalise] = await Promise.all([
         api.get(`/treinos/atleta/${atletaId}`, { headers }),
         api.get(`/treinos/atleta/${atletaId}/analise`, { headers }).catch(() => ({ data: {} }))
       ])
 
-      setTreinos(resTreinos.data.treinos || resTreinos.data || [])
-      setAnalise(resAnalise.data?.analise || resAnalise.data || null)
+      const dadosAnalise = resAnalise.data?.analise || resAnalise.data || null
+      setAnalise(dadosAnalise)
+
+      // CORREÇÃO VISUAL: Garante que o relatório use a lista da IA invertida para manter o mais novo no topo
+      if (dadosAnalise && dadosAnalise.treinos) {
+        setTreinos(dadosAnalise.treinos.slice().reverse())
+      } else {
+        setTreinos(resTreinos.data.treinos || resTreinos.data || [])
+      }
+
     } catch (error) {
-      console.error('Erro ao carregar relatório com IA:', error)
+      console.error('Erro ao carregar relatório:', error)
     } finally {
       setLoading(false)
     }
@@ -105,7 +111,6 @@ function Relatorios({ usuario, atletaSelecionado }) {
 
           <div className="card full-card">
             <h3>Dados do Relatório</h3>
-            {/* CORREÇÃO: Agora passa o risco dinâmico vindo da análise real da IA */}
             <TrainingTable treinos={treinos} riscoGeral={analise?.nivel_risco || 'baixo'} />
           </div>
         </>

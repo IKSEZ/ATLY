@@ -48,7 +48,8 @@ function Dashboard({ atletaId }) {
 
       // CORREÇÃO CRÍTICA: Prioriza os treinos com risco individual calculados pelo Python (app.py)
       if (dadosAnalise && dadosAnalise.treinos) {
-        setTreinos(dadosAnalise.treinos)
+        // O .slice().reverse() garante que o treino mais novo (22/06) fique no topo da tabela!
+        setTreinos(dadosAnalise.treinos.slice().reverse())
       } else if (resTreinos && resTreinos.data) {
         setTreinos(resTreinos.data.treinos || resTreinos.data || [])
       } else {
