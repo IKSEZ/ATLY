@@ -14,7 +14,7 @@ router.use(autenticar);
 // GET /api/v1/atletas — técnico vê todos os seus atletas (RF03)
 router.get('/', autorizar('tecnico'), atletaController.listar);
 
-router.get('/buscar-por-email', atletaController.buscarPorEmail);
+router.get('/buscar-por-email', atletaController.vincularAtletaPorEmail);
 
 // GET /api/v1/atletas/:id — atleta vê só o próprio perfil (RF03)
 router.get('/:id', atletaController.buscarPorId);

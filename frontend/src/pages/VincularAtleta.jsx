@@ -1,109 +1,95 @@
-import { useState } from 'react';
-import api from '../services/api';
+import { useState } from 'react'
+import api from '../services/api'
 
 function VincularAtleta() {
-  const [emailBusca, setEmailBusca] = useState('');
-  const [atletaEncontrado, setAtletaEncontrado] = useState(null);
-  const [erroBusca, setErroBusca] = useState('');
-  const [loadingBusca, setLoadingBusca] = useState(false);
-  const [sucessoVinculo, setSucessoVinculo] = useState('');
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mensagemSucesso, setMensagemSucesso] = useState('')
+  const [mensagemErro, setMensagemErro] = useState('')
+  const [atletaInfo, setAtletaInfo] = useState(null)
 
-  // Função que busca o ID no backend usando o e-mail
-  async function lidarBuscaEmail(e) {
-    const emailDigitado = e.target.value;
-    setEmailBusca(emailDigitado);
-
-    // Só busca se o e-mail parecer minimamente válido (contiver @ e .)
-    if (emailDigitado.includes('@') && emailDigitado.includes('.')) {
-      setLoadingBusca(true);
-      setErroBusca('');
-      setAtletaEncontrado(null);
-
-      try {
-        const token = localStorage.getItem('token');
-        const response = await api.get(`/usuarios/buscar-por-email?email=${encodeURIComponent(emailDigitado.trim())}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        // Se achou, guarda o ID e o Nome no estado
-        setAtletaEncontrado(response.data); 
-      } catch (err) {
-        if (err.response?.status === 404) {
-          setErroBusca('Nenhum atleta cadastrado com este e-mail.');
-        } else {
-          setErroBusca('Erro ao validar e-mail.');
-        }
-      } finally {
-        setLoadingBusca(false);
-      }
-    } else {
-      setAtletaEncontrado(null);
-    }
-  }
-
-  // Função que envia o vínculo usando o ID que descobrimos por trás dos panos
   async function handleVincular(e) {
-    e.preventDefault();
-    if (!atletaEncontrado) return;
+    e.preventDefault()
+    setLoading(true)
+    setMensagemErro('')
+    setMensagemSucesso('')
+    setAtletaInfo(null)
 
     try {
-      const token = localStorage.getItem('token');
-      // Altere para a sua rota real de vinculação do seu sistema
-      await api.post('/tecnicos/vincular-atleta', {
-        atletaId: atletaEncontrado.id // <-- Envia o ID que o Python/Node precisam!
+      const token = localStorage.getItem('token')
+      
+      // Envia APENAS o e-mail dentro da rota de vínculo normal
+      const response = await api.post('/tecnicos/vincular-atleta', { 
+        email: email.trim() 
       }, {
         headers: { Authorization: `Bearer ${token}` }
-      });
+      })
 
-      setSucessoVinculo(`Atleta ${atletaEncontrado.nome} vinculado com sucesso!`);
-      setEmailBusca('');
-      setAtletaEncontrado(null);
+      // O backend processou o e-mail, vinculou e nos devolveu o ID do sistema!
+      setMensagemSucesso(response.data.mensagem)
+      setAtletaInfo(response.data.atleta) // Contém { id, nome }
+      setEmail('')
     } catch (err) {
-      setErroBusca('Falha ao efetuar a vinculação.');
+      if (err.response?.data?.erro) {
+        setMensagemErro(err.response.data.erro)
+      } else {
+        setMensagemErro('Falha ao conectar com o servidor de vinculação.')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className="card" style={{ maxWidth: '500px', padding: '24px' }}>
       <h3>Vincular Novo Atleta</h3>
+      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '16px' }}>
+        Insira o e-mail cadastrado do atleta para localizá-lo e vinculá-lo à sua equipe.
+      </p>
       
       <form onSubmit={handleVincular} className="form-card">
         <label>
           E-mail do Atleta
           <input
             type="email"
-            placeholder="Digite o e-mail exato do atleta..."
-            value={emailBusca}
-            onChange={lidarBuscaEmail}
+            placeholder="exemplo@atleta.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
             required
           />
         </label>
 
-        {/* FEEDBACKS VISUAIS EM TEMPO REAL */}
-        {loadingBusca && <p style={{ color: 'var(--muted)', fontSize: '13px' }}>Buscando ID do atleta...</p>}
-        
-        {erroBusca && <p className="error-message" style={{ padding: '8px', fontSize: '14px' }}>{erroBusca}</p>}
-        
-        {atletaEncontrado && (
-          <div className="success-message" style={{ padding: '10px', fontSize: '14px', background: 'rgba(34, 197, 94, 0.1)' }}>
-            ✓ <strong>Atleta Localizado!</strong> <br />
-            Nome: {atletaEncontrado.nome} <br />
-            ID Sistema: #{atletaEncontrado.id}
+        {mensagemErro && (
+          <div className="error-message" style={{ padding: '10px', fontSize: '14px', marginTop: '10px' }}>
+            {mensagemErro}
           </div>
         )}
 
-        {sucessoVinculo && <p className="success-message">{sucessoVinculo}</p>}
+        {mensagemSucesso && (
+          <div className="success-message" style={{ padding: '10px', fontSize: '14px', marginTop: '10px' }}>
+            {mensagemSucesso}
+          </div>
+        )}
+
+        {atletaInfo && (
+          <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '10px', fontSize: '13px', border: '1px solid var(--border)' }}>
+            <strong>Dados do Vínculo Gerado:</strong><br />
+            ID do Atleta no Banco: #{atletaInfo.id}<br />
+            Nome Completo: {atletaInfo.nome}
+          </div>
+        )}
 
         <button 
           type="submit" 
-          disabled={!atletaEncontrado}
-          style={{ marginTop: '12px', opacity: atletaEncontrado ? 1 : 0.6 }}
+          disabled={loading}
+          style={{ marginTop: '16px', width: '100%' }}
         >
-          Confirmar Vinculação
+          {loading ? 'Processando Vínculo...' : 'Vincular Atleta'}
         </button>
       </form>
     </div>
-  );
+  )
 }
 
-export default VincularAtleta;
+export default VincularAtleta
