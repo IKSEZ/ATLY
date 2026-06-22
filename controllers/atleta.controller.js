@@ -140,39 +140,53 @@ const listar = async (req, res) => {
   }
 };
 
-const buscarPorEmail = async (req, res) => {
-  const { email } = req.query;
+const vincularAtletaPorEmail = async (req, res) => {
+  const { email } = req.body; // Agora recebemos o e-mail digitado no front
 
   if (!email) {
-    return res.status(400).json({ erro: 'O e-mail é obrigatório para a busca.' });
+    return res.status(400).json({ erro: 'O e-mail do atleta é obrigatório.' });
   }
 
   try {
-    // Busca o usuário pelo e-mail, garantindo que ele seja um atleta
-    const { rows } = await pool.query(
-      `SELECT id, nome, email, perfil 
-       FROM usuarios 
+    // 1. Busca o ID do atleta pelo e-mail fornecido
+    const { rows: usuarioRows } = await pool.query(
+      `SELECT id, nome FROM usuarios 
        WHERE LOWER(email) = LOWER($1) AND perfil = 'atleta'`,
       [email.trim()]
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ erro: 'Atleta não encontrado com este e-mail.' });
+    if (usuarioRows.length === 0) {
+      return res.status(404).json({ erro: 'Nenhum atleta encontrado com este e-mail.' });
     }
 
-    // Retorna o ID e o Nome para o frontend usar
-    res.json({
-      id: rows[0].id,
-      nome: rows[0].nome
+    const atletaId = usuarioRows[0].id;
+    const atletaNome = usuarioRows[0].nome;
+    const tecnicoId = req.usuario.id; // ID do técnico logado que vem do middleware
+
+    // 2. Faz a vinculação no banco usando o ID que descobrimos por baixo dos panos
+    // (Ajuste o nome da tabela 'vinculos_tecnicos' e das colunas para bater com o seu banco)
+    await pool.query(
+      `INSERT INTO vinculos_tecnicos (tecnico_id, atleta_id, criado_em)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT DO NOTHING`, // Evita duplicar se já estiver vinculado
+      [tecnicoId, atletaId]
+    );
+
+    // 3. Retorna o ID e o Nome confirmando que deu certo!
+    return res.json({
+      sucesso: true,
+      mensagem: `Atleta ${atletaNome} vinculado com sucesso!`,
+      atleta: { id: atletaId, nome: atletaNome }
     });
+
   } catch (error) {
-    console.error('Erro ao buscar atleta por e-mail:', error);
-    res.status(500).json({ erro: 'Erro interno ao buscar atleta.' });
+    console.error('Erro ao vincular atleta por e-mail:', error);
+    return res.status(500).json({ erro: 'Erro interno ao processar a vinculação.' });
   }
 };
 
 // Não esqueça de adicionar no module.exports no fim do arquivo:
-// module.exports = { ..., buscarPorEmail };
+// module.exports = { ..., vincularAtletaPorEmail };
 
 // ----------------------------------------------------------
 // buscarPorId — Detalhes do perfil do atleta
@@ -471,5 +485,5 @@ module.exports = {
   vincular,
   desvincular,
   mapaCorporal,
-  buscarPorEmail,  
+  vincularAtletaPorEmail,
 };
