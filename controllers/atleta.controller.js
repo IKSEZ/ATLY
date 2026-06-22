@@ -140,51 +140,6 @@ const listar = async (req, res) => {
   }
 };
 
-const vincularAtletaPorEmail = async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ erro: 'O e-mail do atleta é obrigatório.' });
-  }
-
-  try {
-    // 1. Busca o ID do atleta pelo e-mail fornecido
-    const { rows: usuarioRows } = await pool.query(
-      `SELECT id, nome FROM usuarios 
-       WHERE LOWER(email) = LOWER($1) AND perfil = 'atleta'`,
-      [email.trim()]
-    );
-
-    if (usuarioRows.length === 0) {
-      return res.status(404).json({ erro: 'Nenhum atleta encontrado com este e-mail.' });
-    }
-
-    const atletaId = usuarioRows[0].id;
-    const atletaNome = usuarioRows[0].nome;
-
-    // 2. Vincula na sua tabela correta 'tecnico_atleta' evitando duplicidades
-    await pool.query(
-      `INSERT INTO tecnico_atleta (tecnico_id, atleta_id)
-       VALUES ($1, $2)
-       ON CONFLICT DO NOTHING`,
-      [req.usuario.id, atletaId]
-    );
-
-    // 3. Retorna a resposta de sucesso idêntica para o front-end
-    return res.json({
-      sucesso: true,
-      mensagem: 'Atleta vinculado com sucesso',
-      atleta: { id: atletaId, nome: atletaNome }
-    });
-
-  } catch (error) {
-    console.error('Erro ao vincular atleta por e-mail:', error);
-    return res.status(500).json({ erro: 'Erro interno ao vincular atleta' });
-  }
-};
-
-// Não esqueça de adicionar no module.exports no fim do arquivo:
-// module.exports = { ..., vincularAtletaPorEmail };
 
 // ----------------------------------------------------------
 // buscarPorId — Detalhes do perfil do atleta
@@ -483,5 +438,4 @@ module.exports = {
   vincular,
   desvincular,
   mapaCorporal,
-  vincularAtletaPorEmail,
 };

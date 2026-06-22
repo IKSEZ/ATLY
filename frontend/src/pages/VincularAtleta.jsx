@@ -6,33 +6,46 @@ function VincularAtleta() {
   const [loading, setLoading] = useState(false)
   const [mensagemSucesso, setMensagemSucesso] = useState('')
   const [mensagemErro, setMensagemErro] = useState('')
-  const [atletaInfo, setAtletaInfo] = useState(null)
 
   async function handleVincular(e) {
     e.preventDefault()
     setLoading(true)
     setMensagemErro('')
     setMensagemSucesso('')
-    setAtletaInfo(null)
 
     try {
       const token = localStorage.getItem('token')
-      
-      // Faz o POST passando o e-mail estruturado para o backend interceptar e vincular
-      const response = await api.post('/tecnicos/vincular-atleta', { 
-        email: email.trim() 
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const headers = { Authorization: `Bearer ${token}` }
 
-      setMensagemSucesso(response.data.mensagem)
-      setAtletaInfo(response.data.atleta) // Contém { id, nome }
+      // 1. Usa a sua rota GET '/' padrão de atletas para pegar a lista
+      const responseListar = await api.get('/atletas', { headers })
+      const listaAtletas = responseListar.data?.atletas || []
+
+      // 2. Procura na lista existente o atleta que tem o e-mail digitado
+      const atletaEncontrado = listaAtletas.find(
+        (a) => String(a.email).toLowerCase().trim() === email.toLowerCase().trim()
+      )
+
+      if (!atletaEncontrado) {
+        setMensagemErro('Atleta não localizado ou não disponível para vinculação.')
+        setLoading(false)
+        return
+      }
+
+      // 3. Com o ID em mãos, faz o POST na sua rota oficial de ID nativa!
+      const responseVinculo = await api.post(
+        `/atletas/${atletaEncontrado.id}/vincular`,
+        {},
+        { headers }
+      )
+
+      setMensagemSucesso(responseVinculo.data?.mensagem || 'Atleta vinculado com sucesso!')
       setEmail('')
     } catch (err) {
       if (err.response?.data?.erro) {
         setMensagemErro(err.response.data.erro)
       } else {
-        setMensagemErro('Falha ao conectar com o servidor de vinculação.')
+        setMensagemErro('Erro ao processar a vinculação do atleta.')
       }
     } finally {
       setLoading(false)
@@ -66,12 +79,6 @@ function VincularAtleta() {
         {mensagemSucesso && (
           <div className="success-message">
             {mensagemSucesso}
-          </div>
-        )}
-
-        {atletaInfo && (
-          <div className="success-message" style={{ background: 'rgba(168, 85, 247, 0.08)', borderColor: 'var(--border)' }}>
-            <strong>Vínculo Realizado:</strong> #{atletaInfo.id} - {atletaInfo.nome}
           </div>
         )}
 
