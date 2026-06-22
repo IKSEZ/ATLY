@@ -471,4 +471,5 @@ module.exports = {
   vincular,
   desvincular,
   mapaCorporal,
+  buscarPorEmail,  
 };
