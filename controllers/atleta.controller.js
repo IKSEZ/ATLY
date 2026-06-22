@@ -110,8 +110,7 @@ async function analisarAtleta(atletaId) {
 }
 
 // ----------------------------------------------------------
-// listar — Ajustado para trazer todos os atletas do sistema,
-// permitindo a busca e vinculação por e-mail no frontend
+// listar — somente técnico, vê apenas seus atletas vinculados
 // ----------------------------------------------------------
 const listar = async (req, res) => {
   try {
@@ -129,10 +128,10 @@ const listar = async (req, res) => {
         ap.carga_cronica,
         ap.analise_em
        FROM usuarios a
+       JOIN tecnico_atleta ta ON ta.atleta_id = a.id
        LEFT JOIN atleta_perfil ap ON ap.usuario_id = a.id
-       WHERE a.perfil = 'atleta'
-       ORDER BY a.nome ASC`, // Removeu o JOIN restritivo com tecnico_atleta
-      []
+       WHERE ta.tecnico_id = $1 AND a.perfil = 'atleta'`,
+      [req.usuario.id]
     );
     res.json({ atletas: rows });
   } catch (error) {

@@ -49,6 +49,13 @@ function Sidebar({ usuario, tela, setTela, onLogout }) {
         <div>
           <strong>{usuario?.nome || 'Usuário'}</strong>
           <span>{usuario?.perfil || 'perfil'}</span>
+          
+          {/* Se for atleta, exibe o ID logo abaixo do perfil */}
+          {usuario?.perfil === 'atleta' && (
+            <span style={{ fontSize: '11px', display: 'block', opacity: 0.7, marginTop: '2px' }}>
+              ID: #{usuario?.id}
+            </span>
+          )}
         </div>
       </div>
 
