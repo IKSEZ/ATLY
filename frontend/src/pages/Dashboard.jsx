@@ -139,7 +139,7 @@ function Dashboard({ atletaId }) {
       {/* Tabela de listagem do Histórico Recente */}
       <div className="card full-card">
         <h3>Histórico de Treinos</h3>
-        <TrainingTable treinos={treinos || []} />
+        <TrainingTable treinos={treinos || []} riscoGeral={analise?.nivel_risco || 'baixo'} />
       </div>
     </section>
   )

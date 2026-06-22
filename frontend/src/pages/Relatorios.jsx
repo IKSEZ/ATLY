@@ -6,16 +6,23 @@ import TrainingTable from '../components/TrainingTable'
 
 function Relatorios({ usuario, atletaSelecionado }) {
   const [treinos, setTreinos] = useState([])
+  const [analise, setAnalise] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Extrai com segurança o ID caso seja objeto ou o valor bruto caso seja número puro
+  const idDoAtletaSelecionado = atletaSelecionado && typeof atletaSelecionado === 'object' 
+    ? atletaSelecionado.id 
+    : atletaSelecionado;
+
   const atletaId =
-    usuario?.perfil === 'tecnico' && atletaSelecionado?.id
-      ? atletaSelecionado.id
+    usuario?.perfil === 'tecnico' && idDoAtletaSelecionado
+      ? idDoAtletaSelecionado
       : usuario?.id
 
   async function carregarRelatorio() {
-    if (usuario?.perfil === 'tecnico' && !atletaSelecionado?.id) {
+    if (usuario?.perfil === 'tecnico' && !idDoAtletaSelecionado) {
       setTreinos([])
+      setAnalise(null)
       setLoading(false)
       return
     }
@@ -25,10 +32,19 @@ function Relatorios({ usuario, atletaSelecionado }) {
     setLoading(true)
 
     try {
-      const response = await api.get(`/treinos/atleta/${atletaId}`)
-      setTreinos(response.data.treinos || [])
+      const token = localStorage.getItem('token')
+      const headers = { Authorization: `Bearer ${token}` }
+
+      // CORREÇÃO: Faz a busca paralela dos treinos e da análise de risco da IA de forma idêntica ao Dashboard
+      const [resTreinos, resAnalise] = await Promise.all([
+        api.get(`/treinos/atleta/${atletaId}`, { headers }),
+        api.get(`/treinos/atleta/${atletaId}/analise`, { headers }).catch(() => ({ data: {} }))
+      ])
+
+      setTreinos(resTreinos.data.treinos || resTreinos.data || [])
+      setAnalise(resAnalise.data?.analise || resAnalise.data || null)
     } catch (error) {
-      console.error('Erro ao carregar relatório:', error)
+      console.error('Erro ao carregar relatório com IA:', error)
     } finally {
       setLoading(false)
     }
@@ -56,7 +72,7 @@ function Relatorios({ usuario, atletaSelecionado }) {
 
       {loading ? (
         <div className="empty-state">Carregando relatório...</div>
-      ) : usuario?.perfil === 'tecnico' && !atletaSelecionado?.id ? (
+      ) : usuario?.perfil === 'tecnico' && !idDoAtletaSelecionado ? (
         <div className="empty-state">Selecione um atleta para ver os relatórios.</div>
       ) : (
         <>
@@ -89,7 +105,8 @@ function Relatorios({ usuario, atletaSelecionado }) {
 
           <div className="card full-card">
             <h3>Dados do Relatório</h3>
-            <TrainingTable treinos={treinos} />
+            {/* CORREÇÃO: Agora passa o risco dinâmico vindo da análise real da IA */}
+            <TrainingTable treinos={treinos} riscoGeral={analise?.nivel_risco || 'baixo'} />
           </div>
         </>
       )}

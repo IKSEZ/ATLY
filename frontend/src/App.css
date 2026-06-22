@@ -47,7 +47,9 @@ button {
   cursor: pointer;
 }
 
-/* LOGIN */
+/* ==========================================================================
+   LOGIN
+========================================================================== */
 
 .login-screen {
   width: 100vw;
@@ -85,23 +87,6 @@ button {
   width: 100%;
   display: flex;
   justify-content: center;
-}
-
-.login-logo-wrapper img {
-  width: 310px;
-  max-width: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 0 26px rgba(168, 85, 247, 0.50));
-}
-
-.login-brand-icon {
-  display: none;
-}
-
-.login-logo-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
   align-items: center;
 }
 
@@ -112,6 +97,10 @@ button {
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 0 26px rgba(168, 85, 247, 0.50));
+}
+
+.login-brand-icon {
+  display: none;
 }
 
 .login-heading {
@@ -309,7 +298,9 @@ button {
   color: #ffffff;
 }
 
-/* LAYOUT GERAL */
+/* ==========================================================================
+   LAYOUT GERAL
+========================================================================== */
 
 .app {
   width: 100vw;
@@ -341,7 +332,9 @@ button {
   overflow-x: hidden;
 }
 
-/* MENU */
+/* ==========================================================================
+   MENU
+========================================================================== */
 
 .brand {
   display: flex;
@@ -430,7 +423,9 @@ button {
   background: rgba(239, 68, 68, 0.12);
 }
 
-/* CONTEÚDO */
+/* ==========================================================================
+   CONTEÚDO
+========================================================================== */
 
 .page-header {
   display: flex;
@@ -557,7 +552,9 @@ th {
   color: #d1d5db;
 }
 
-/* FORM */
+/* ==========================================================================
+   FORM
+========================================================================== */
 
 .form-layout {
   display: grid;
@@ -633,7 +630,9 @@ th {
   margin-bottom: 14px;
 }
 
-/* BODY 3D */
+/* ==========================================================================
+   BODY 3D - MAPA DE CALOR & ALERTAS
+========================================================================== */
 
 .body3d-page {
   display: grid;
@@ -694,64 +693,40 @@ th {
   border: 1px solid rgba(168, 85, 247, 0.18);
 }
 
+/* ============================================
+   AQUI ESTÁ A CORREÇÃO PRINCIPAL DA IMAGEM 
+============================================ */
+
+/* CONTAINER DA IMAGEM TRAVADO NA PROPORÇÃO EXATA */
+.body3d-image-area,
 .body3d-image-wrapper {
   position: relative;
-  height: 100%;
-  min-height: 620px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.body3d-image {
-  width: 95%;
-  max-height: 590px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 28px rgba(168, 85, 247, 0.72));
-  transition: 0.25s;
-}
-
-.hotspot {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  filter: blur(16px);
-  opacity: 0.88;
-  animation: pulseHeat 1.8s infinite;
-}
-
-.risco-alto {
-  background: radial-gradient(circle, #ff003c, #ff7a00, transparent 70%);
-}
-
-.risco-medio {
-  background: radial-gradient(circle, #ff7a00, #ffcc00, transparent 70%);
-}
-
-.risco-atencao {
-  background: radial-gradient(circle, #ffcc00, #34d399, transparent 70%);
-}
-
-.risco-baixo {
-  background: radial-gradient(circle, #34d399, #22d3ee, transparent 70%);
-}
-.body3d-image-area {
-  position: relative;
   width: 100%;
-  max-width: 780px;
+  max-width: 780px; 
   margin: 0 auto;
+  /* A MÁGICA ESTÁ AQUI: Trava a caixa na proporção real da sua imagem! */
+  aspect-ratio: 780 / 688; 
 }
 
+/* IMAGEM DO BONECO 3D (Preenche 100% da caixa travada) */
 .body3d-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  display: block;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: lighten; 
+  filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.4));
 }
 
+/* CAMADA DOS PONTOS DE CALOR (Cobre exatamente a imagem) */
 .body3d-heatmap-layer {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -779,12 +754,16 @@ th {
     transform: scale(0.9);
     opacity: 0.65;
   }
-
   50% {
     transform: scale(1.18);
     opacity: 1;
   }
 }
+
+.risco-alto { background: radial-gradient(circle, #ff003c, #ff7a00, transparent 70%); }
+.risco-medio { background: radial-gradient(circle, #ff7a00, #ffcc00, transparent 70%); }
+.risco-atencao { background: radial-gradient(circle, #ffcc00, #34d399, transparent 70%); }
+.risco-baixo { background: radial-gradient(circle, #34d399, #22d3ee, transparent 70%); }
 
 .rotate-badge {
   position: absolute;
@@ -869,7 +848,14 @@ th {
   height: 8px;
   background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
   border-radius: 999px;
+  overflow: hidden;
 }
+
+/* CLASSES DE PREENCHIMENTO DO ACWR */
+.bg-alto { background: #fb174b; }
+.bg-medio { background: #f97316; }
+.bg-atencao { background: #eab308; }
+.bg-baixo { background: #22c55e; }
 
 .risk-big {
   display: inline-block;
@@ -954,21 +940,25 @@ th {
   border-radius: 10px;
   font-weight: 800;
   font-size: 12px;
+  text-transform: capitalize;
 }
 
+/* CARDS DOS ALERTAS (Cores Elegantes) */
 .alert-body-item.alto {
   border: 1px solid #fb174b;
   background: rgba(251, 23, 75, 0.18);
 }
-
 .alert-body-item.medio {
   border: 1px solid #f97316;
   background: rgba(249, 115, 22, 0.16);
 }
-
-.alert-body-item.baixo {
+.alert-body-item.atencao {
   border: 1px solid #eab308;
   background: rgba(234, 179, 8, 0.14);
+}
+.alert-body-item.baixo {
+  border: 1px solid #22c55e;
+  background: rgba(34, 197, 94, 0.14);
 }
 
 .legend {
@@ -992,21 +982,10 @@ th {
   border-radius: 50%;
 }
 
-.dot.baixo {
-  background: #22c55e;
-}
-
-.dot.atencao {
-  background: #eab308;
-}
-
-.dot.medio {
-  background: #f97316;
-}
-
-.dot.alto {
-  background: #fb174b;
-}
+.dot.baixo { background: #22c55e; }
+.dot.atencao { background: #eab308; }
+.dot.medio { background: #f97316; }
+.dot.alto { background: #fb174b; }
 
 .regions-list {
   display: flex;
@@ -1022,6 +1001,7 @@ th {
   padding: 6px 10px;
   border-radius: 8px;
   font-size: 12px;
+  text-transform: capitalize;
 }
 
 .regions-list strong.alto {
@@ -1084,6 +1064,7 @@ th {
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
+  text-transform: capitalize;
 }
 
 .muscle-placeholder {
@@ -1099,7 +1080,9 @@ th {
   background-size: 28px 28px;
 }
 
-/* RESPONSIVO */
+/* ==========================================================================
+   RESPONSIVO
+========================================================================== */
 
 @media (max-width: 1200px) {
   .body3d-page {

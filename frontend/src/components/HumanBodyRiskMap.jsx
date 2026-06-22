@@ -2,8 +2,48 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import api from '../services/api'
 
+// DICIONÁRIO DE CORREÇÃO DE COORDENADAS (Mapeamento exato da imagem original)
+const coordenadasExatas = {
+  // --- VISÃO FRONTAL (Boneco do Meio) ---
+  'cabeca': { x: 50, y: 8 },
+  'cabeça': { x: 50, y: 8 },
+  'pescoço': { x: 50, y: 15 },
+  'pescoco': { x: 50, y: 15 },
+  'ombro': { x: 40, y: 22 }, // Ombro esquerdo da tela
+  'peito': { x: 50, y: 28 },
+  'peitoral': { x: 50, y: 28 },
+  'abdomen': { x: 50, y: 40 },
+  'abdômen': { x: 50, y: 40 },
+  'quadril': { x: 50, y: 49 },
+  
+  // Membros Inferiores (Perna à esquerda da tela)
+  'coxa': { x: 44, y: 62 },
+  'quadriceps': { x: 44, y: 62 },
+  'coxa / quadriceps': { x: 44, y: 62 },
+  'joelho': { x: 44, y: 74 }, 
+  'panturrilha': { x: 43, y: 84 },
+  'tornozelo': { x: 42, y: 92 },
+  'pe': { x: 41, y: 97 },
+  'pé': { x: 41, y: 97 },
+
+  // Membros Superiores (Braço à esquerda da tela)
+  'braco': { x: 33, y: 34 },
+  'braço': { x: 33, y: 34 },
+  'cotovelo': { x: 29, y: 43 },
+  'punho': { x: 26, y: 53 },
+  'mao': { x: 25, y: 58 },
+  'mão': { x: 25, y: 58 },
+
+  // --- VISÃO POSTERIOR/PERFIL (Boneco da Direita) ---
+  'costas': { x: 84, y: 28 }, 
+  'lombar': { x: 84, y: 38 },
+  'gluteo': { x: 85, y: 48 },
+  'glúteo': { x: 85, y: 48 },
+  'posterior': { x: 84, y: 62 },
+  'posterior da coxa': { x: 84, y: 62 }
+}
+
 function HumanBodyRiskMap({ atletaId }) {
-  // CORREÇÃO 1: Inicialização explícita e segura dos arrays
   const [dados, setDados] = useState({ regioes: [], alertas: [] })
   const [regiaoSelecionada, setRegiaoSelecionada] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -17,9 +57,12 @@ function HumanBodyRiskMap({ atletaId }) {
       setErro('')
 
       try {
-        const response = await api.get(`/atletas/${atletaId}/mapa-corporal`)
+        // CORREÇÃO VISUAL: Captura o token do localStorage para autenticar no Railway
+        const token = localStorage.getItem('token')
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+
+        const response = await api.get(`/atletas/${atletaId}/mapa-corporal`, { headers })
         
-        // CORREÇÃO 2: Garante arrays vazios como plano de fundo (fallback) caso venha nulo do backend
         const regioes = response.data?.regioes || []
         const alertas = response.data?.alertas || []
 
@@ -38,10 +81,27 @@ function HumanBodyRiskMap({ atletaId }) {
 
   function classeRisco(nivel) {
     const n = String(nivel || '').toLowerCase()
-    if (n.includes('alto'))                          return 'alto'
+    if (n.includes('alto')) return 'alto'
     if (n.includes('moderado') || n.includes('medio') || n.includes('médio')) return 'medio'
-    if (n.includes('aten'))                          return 'atencao'
+    if (n.includes('aten')) return 'atencao'
     return 'baixo'
+  }
+
+  // Interceptador que aplica a coordenada fixa ao invés da enviada pelo banco
+  function obterPosicao(regiao) {
+    const nomeLimpo = String(regiao.nome || '').toLowerCase().trim()
+    
+    if (coordenadasExatas[nomeLimpo]) {
+      return {
+        x: coordenadasExatas[nomeLimpo].x,
+        y: coordenadasExatas[nomeLimpo].y
+      }
+    }
+    
+    return {
+      x: regiao.x,
+      y: regiao.y
+    }
   }
 
   return (
@@ -65,7 +125,7 @@ function HumanBodyRiskMap({ atletaId }) {
         {!loading && !erro && (
           <>
             <div className="body3d-viewer">
-              <div className="body3d-image-area">
+              <div className="body3d-image-area" style={{ position: 'relative' }}>
                 <img
                   src="/human-body-3d.png"
                   alt="Mapa corporal 3D"
@@ -73,19 +133,26 @@ function HumanBodyRiskMap({ atletaId }) {
                 />
 
                 <div className="body3d-heatmap-layer">
-                  {/* CORREÇÃO 3: Verificação opcional de segurança (.map seguro) */}
-                  {(dados.regioes || []).map((regiao) => (
-                    <button
-                      key={regiao.id || Math.random()}
-                      className={`hotspot risco-${classeRisco(regiao.nivel)}${
-                        regiaoSelecionada?.id === regiao.id ? ' hotspot-selected' : ''
-                      }`}
-                      style={{ left: `${regiao.x}%`, top: `${regiao.y}%` }}
-                      onClick={() => setRegiaoSelecionada(regiao)}
-                      aria-label={`Ver detalhes de ${regiao.nome}`}
-                      title={`${regiao.nome} - ${regiao.nivel}`}
-                    />
-                  ))}
+                  {(dados.regioes || []).map((regiao) => {
+                    const posicao = obterPosicao(regiao);
+
+                    return (
+                      <button
+                        key={regiao.id || Math.random()}
+                        className={`hotspot risco-${classeRisco(regiao.nivel)}${
+                          regiaoSelecionada?.id === regiao.id ? ' hotspot-selected' : ''
+                        }`}
+                        style={{ 
+                          left: `${posicao.x}%`, 
+                          top: `${posicao.y}%`,
+                          position: 'absolute'
+                        }}
+                        onClick={() => setRegiaoSelecionada(regiao)}
+                        aria-label={`Ver detalhes de ${regiao.nome}`}
+                        title={`${regiao.nome} - ${regiao.nivel}`}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -110,7 +177,6 @@ function HumanBodyRiskMap({ atletaId }) {
                 )}
               </div>
 
-              {/* CORREÇÃO 4: Laço alternativo mapeado com segurança */}
               {(dados.regioes || []).map((regiao) => (
                 <button
                   type="button"
@@ -146,7 +212,7 @@ function HumanBodyRiskMap({ atletaId }) {
           ) : (
             dados.alertas.map((alerta) => (
               <div
-                className={`alert-body-item ${classeRisco(alerta.nivel)}`}
+                className={`alert-body-item risco-${classeRisco(alerta.nivel)}`}
                 key={alerta.id || Math.random()}
               >
                 <div>

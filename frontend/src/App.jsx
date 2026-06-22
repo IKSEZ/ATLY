@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react' // CORREÇÃO: useEffect importado aqui
 
 import Sidebar from './components/Sidebar'
 
@@ -13,7 +13,7 @@ import Alertas from './pages/Alertas'
 import Relatorios from './pages/Relatorios'
 import DetalhesAtleta from './pages/DetalhesAtleta'
 import CadastroAtleta from './pages/CadastroAtleta'
-import VincularAtleta from './pages/VincularAtleta' // 1. IMPORTAR A NOVA TELA
+import VincularAtleta from './pages/VincularAtleta' 
 
 import './App.css'
 
@@ -26,16 +26,15 @@ function App() {
   const [atletaSelecionado, setAtletaSelecionado] = useState(null)
   const [telaPublica, setTelaPublica] = useState('login') 
 
-  // MONITOR DE ESTADO GLOBAL (Rastreador de Bugs)
-  // Esse bloco vai disparar toda vez que o ID selecionado ou a tela mudar
-  require('react').useEffect(() => {
+  // CORREÇÃO: Removido o 'require' e usado o useEffect nativo do Vite
+  useEffect(() => {
     try {
       console.log("--- RASTREAMENTO DE ESTADO DO APP ---");
       console.log(`Tela ativa no sistema: "${tela}"`);
       console.log(`Valor atual do atletaSelecionado no App.jsx:`, atletaSelecionado);
       
       if (tela === 'detalhes-atleta' && (atletaSelecionado === null || atletaSelecionado === undefined)) {
-        console.error("ALERTA: O sistema mudou para a tela 'detalhes-atleta', mas o ID do atleta está VAZIO. A tela vai quebrar em branco.");
+        console.error("ALERTA: O sistema mudou para a tela 'detalhes-atleta', mas o ID do atleta está VAZIO.");
       }
       console.log("-------------------------------------");
     } catch (err) {
@@ -119,7 +118,7 @@ function App() {
           <Relatorios usuario={usuario} atletaSelecionado={atletaSelecionado} />
         )}
 
-        {/* CORREÇÃO AQUI: Enviamos tanto atletaId quanto atletaID para blindar contra qualquer diferença nos arquivos */}
+        {/* Mantido o mapeamento blindado das propriedades */}
         {tela === 'detalhes-atleta' && (
           <DetalhesAtleta 
             atletaId={atletaSelecionado} 
@@ -132,7 +131,6 @@ function App() {
           <CadastroAtleta tecnicoId={usuario.id} />
         )}
 
-        {/* 2. ADICIONAR A RENDERIZAÇÃO DA TELA DE VÍNCULO */}
         {tela === 'vincular-atleta' && (
           <VincularAtleta tecnicoId={usuario.id} />
         )}
