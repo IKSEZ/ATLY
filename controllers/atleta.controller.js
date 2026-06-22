@@ -141,7 +141,7 @@ const listar = async (req, res) => {
 };
 
 const vincularAtletaPorEmail = async (req, res) => {
-  const { email } = req.body; // Agora recebemos o e-mail digitado no front
+  const { email } = req.body;
 
   if (!email) {
     return res.status(400).json({ erro: 'O e-mail do atleta é obrigatório.' });
@@ -161,27 +161,25 @@ const vincularAtletaPorEmail = async (req, res) => {
 
     const atletaId = usuarioRows[0].id;
     const atletaNome = usuarioRows[0].nome;
-    const tecnicoId = req.usuario.id; // ID do técnico logado que vem do middleware
 
-    // 2. Faz a vinculação no banco usando o ID que descobrimos por baixo dos panos
-    // (Ajuste o nome da tabela 'vinculos_tecnicos' e das colunas para bater com o seu banco)
+    // 2. Vincula na sua tabela correta 'tecnico_atleta' evitando duplicidades
     await pool.query(
-      `INSERT INTO vinculos_tecnicos (tecnico_id, atleta_id, criado_em)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT DO NOTHING`, // Evita duplicar se já estiver vinculado
-      [tecnicoId, atletaId]
+      `INSERT INTO tecnico_atleta (tecnico_id, atleta_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [req.usuario.id, atletaId]
     );
 
-    // 3. Retorna o ID e o Nome confirmando que deu certo!
+    // 3. Retorna a resposta de sucesso idêntica para o front-end
     return res.json({
       sucesso: true,
-      mensagem: `Atleta ${atletaNome} vinculado com sucesso!`,
+      mensagem: 'Atleta vinculado com sucesso',
       atleta: { id: atletaId, nome: atletaNome }
     });
 
   } catch (error) {
     console.error('Erro ao vincular atleta por e-mail:', error);
-    return res.status(500).json({ erro: 'Erro interno ao processar a vinculação.' });
+    return res.status(500).json({ erro: 'Erro interno ao vincular atleta' });
   }
 };
 

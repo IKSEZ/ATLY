@@ -18,14 +18,13 @@ function VincularAtleta() {
     try {
       const token = localStorage.getItem('token')
       
-      // Envia APENAS o e-mail dentro da rota de vínculo normal
+      // Faz o POST passando o e-mail estruturado para o backend interceptar e vincular
       const response = await api.post('/tecnicos/vincular-atleta', { 
         email: email.trim() 
       }, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
-      // O backend processou o e-mail, vinculou e nos devolveu o ID do sistema!
       setMensagemSucesso(response.data.mensagem)
       setAtletaInfo(response.data.atleta) // Contém { id, nome }
       setEmail('')
@@ -41,13 +40,11 @@ function VincularAtleta() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: '500px', padding: '24px' }}>
+    <div className="card form-card">
       <h3>Vincular Novo Atleta</h3>
-      <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '16px' }}>
-        Insira o e-mail cadastrado do atleta para localizá-lo e vinculá-lo à sua equipe.
-      </p>
+      <p>Insira o e-mail cadastrado do atleta para localizá-lo e vinculá-lo à sua equipe.</p>
       
-      <form onSubmit={handleVincular} className="form-card">
+      <form onSubmit={handleVincular}>
         <label>
           E-mail do Atleta
           <input
@@ -61,30 +58,24 @@ function VincularAtleta() {
         </label>
 
         {mensagemErro && (
-          <div className="error-message" style={{ padding: '10px', fontSize: '14px', marginTop: '10px' }}>
+          <div className="error-message">
             {mensagemErro}
           </div>
         )}
 
         {mensagemSucesso && (
-          <div className="success-message" style={{ padding: '10px', fontSize: '14px', marginTop: '10px' }}>
+          <div className="success-message">
             {mensagemSucesso}
           </div>
         )}
 
         {atletaInfo && (
-          <div style={{ marginTop: '12px', padding: '12px', background: 'rgba(168, 85, 247, 0.1)', borderRadius: '10px', fontSize: '13px', border: '1px solid var(--border)' }}>
-            <strong>Dados do Vínculo Gerado:</strong><br />
-            ID do Atleta no Banco: #{atletaInfo.id}<br />
-            Nome Completo: {atletaInfo.nome}
+          <div className="success-message" style={{ background: 'rgba(168, 85, 247, 0.08)', borderColor: 'var(--border)' }}>
+            <strong>Vínculo Realizado:</strong> #{atletaInfo.id} - {atletaInfo.nome}
           </div>
         )}
 
-        <button 
-          type="submit" 
-          disabled={loading}
-          style={{ marginTop: '16px', width: '100%' }}
-        >
+        <button type="submit" disabled={loading}>
           {loading ? 'Processando Vínculo...' : 'Vincular Atleta'}
         </button>
       </form>
