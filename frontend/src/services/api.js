@@ -6,7 +6,6 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  // Injeta apenas o Token de Autorização, que o backend já aceita perfeitamente
   const token = localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
