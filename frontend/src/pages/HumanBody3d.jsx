@@ -10,31 +10,29 @@ import {
 import api from '../services/api'
 import TrainingTable from '../components/TrainingTable'
 
-// DICIONÁRIO DE CORREÇÃO DE COORDENADAS (Cálculo exato para aspecto 780x688)
 const coordenadasExatas = {
-  // --- VISÃO FRONTAL (Boneco do Centro - Eixo X central = 50%) ---
   'cabeca': { x: 50, y: 9 },
   'cabeça': { x: 50, y: 9 },
   'pescoço': { x: 50, y: 15 },
   'pescoco': { x: 50, y: 15 },
-  'ombro': { x: 41, y: 22 },       // Ombro esquerdo do boneco
+  'ombro': { x: 41, y: 22 },      
   'peito': { x: 50, y: 27 },
   'peitoral': { x: 50, y: 27 },
   'abdomen': { x: 50, y: 38 },
   'abdômen': { x: 50, y: 38 },
-  'quadril': { x: 50, y: 48 },     // Centro da pélvis
+  'quadril': { x: 50, y: 48 },     
   
-  // Membros Inferiores (Perna esquerda do boneco - Eixo X = 45%)
+  
   'coxa': { x: 45, y: 61 },
   'quadriceps': { x: 45, y: 61 },
   'coxa / quadriceps': { x: 45, y: 61 },
-  'joelho': { x: 45, y: 73 },      // Exatamente na articulação 
+  'joelho': { x: 45, y: 73 },      
   'panturrilha': { x: 45, y: 83 },
   'tornozelo': { x: 45, y: 92 },
   'pe': { x: 45, y: 96 },
   'pé': { x: 45, y: 96 },
 
-  // Membros Superiores (Braço esquerdo do boneco)
+  
   'braco': { x: 34, y: 35 },
   'braço': { x: 34, y: 35 },
   'cotovelo': { x: 31, y: 44 },
@@ -42,7 +40,7 @@ const coordenadasExatas = {
   'mao': { x: 27, y: 59 },
   'mão': { x: 27, y: 59 },
 
-  // --- VISÃO POSTERIOR/PERFIL (Boneco da Direita - Eixo X base = 84%) ---
+
   'costas': { x: 86, y: 28 }, 
   'lombar': { x: 87, y: 40 },
   'gluteo': { x: 88, y: 48 },
@@ -78,11 +76,11 @@ function HumanBody3D({ atletaId }) {
           alertas: resMapa.data?.alertas || []
         })
         
-        // Mapeia os dados da análise com fallback para a estrutura correta
+       
         const dadosAnalise = resAnalise.data?.analise || resAnalise.data || {}
         setAnalise(dadosAnalise)
 
-        // Se a própria resposta da rota da análise já trouxer a lista de treinos calculados pelo Python, usamos ela prioritariamente
+        
         const listaTreinos = dadosAnalise.treinos || resTreinos.data?.treinos || resTreinos.data || []
         setTreinos(listaTreinos)
 
