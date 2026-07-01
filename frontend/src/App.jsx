@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react' // CORREÇÃO: useEffect importado aqui
+import { useState, useEffect } from 'react' 
 
 import Sidebar from './components/Sidebar'
 
@@ -26,9 +26,9 @@ function App() {
   const [atletaSelecionado, setAtletaSelecionado] = useState(null)
   const [telaPublica, setTelaPublica] = useState('login') 
 
-  // CORREÇÃO: Removido o 'require' e usado o useEffect nativo do Vite
+  
   useEffect(() => {
-    try {
+    try { 
       console.log("--- RASTREAMENTO DE ESTADO DO APP ---");
       console.log(`Tela ativa no sistema: "${tela}"`);
       console.log(`Valor atual do atletaSelecionado no App.jsx:`, atletaSelecionado);
