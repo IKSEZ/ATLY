@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, CheckCircle } from 'lucide-react'
 import api from '../services/api'
 
-// DICIONÁRIO DE CORREÇÃO DE COORDENADAS (Mapeamento exato da imagem original)
+
 const coordenadasExatas = {
-  // --- VISÃO FRONTAL (Boneco do Meio) ---
+ 
   'cabeca': { x: 50, y: 8 },
   'cabeça': { x: 50, y: 8 },
   'pescoço': { x: 50, y: 15 },
@@ -16,7 +16,6 @@ const coordenadasExatas = {
   'abdômen': { x: 50, y: 40 },
   'quadril': { x: 50, y: 49 },
   
-  // Membros Inferiores (Perna à esquerda da tela)
   'coxa': { x: 44, y: 62 },
   'quadriceps': { x: 44, y: 62 },
   'coxa / quadriceps': { x: 44, y: 62 },
@@ -26,7 +25,6 @@ const coordenadasExatas = {
   'pe': { x: 41, y: 97 },
   'pé': { x: 41, y: 97 },
 
-  // Membros Superiores (Braço à esquerda da tela)
   'braco': { x: 33, y: 34 },
   'braço': { x: 33, y: 34 },
   'cotovelo': { x: 29, y: 43 },
@@ -34,7 +32,6 @@ const coordenadasExatas = {
   'mao': { x: 25, y: 58 },
   'mão': { x: 25, y: 58 },
 
-  // --- VISÃO POSTERIOR/PERFIL (Boneco da Direita) ---
   'costas': { x: 84, y: 28 }, 
   'lombar': { x: 84, y: 38 },
   'gluteo': { x: 85, y: 48 },
@@ -57,7 +54,6 @@ function HumanBodyRiskMap({ atletaId }) {
       setErro('')
 
       try {
-        // CORREÇÃO VISUAL: Captura o token do localStorage para autenticar no Railway
         const token = localStorage.getItem('token')
         const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
@@ -87,7 +83,6 @@ function HumanBodyRiskMap({ atletaId }) {
     return 'baixo'
   }
 
-  // Interceptador que aplica a coordenada fixa ao invés da enviada pelo banco
   function obterPosicao(regiao) {
     const nomeLimpo = String(regiao.nome || '').toLowerCase().trim()
     
