@@ -2,8 +2,7 @@ import { useState } from 'react'
 import api from '../services/api'
 import { KeyRound } from 'lucide-react'
 
-// Exibido logo após o login quando usuario.senha_provisoria === true
-// onSenhaTrocada: callback chamado após sucesso (ex: redirecionar para dashboard)
+
 function PrimeiroAcesso({ onSenhaTrocada }) {
   const [form, setForm] = useState({
     senha_atual: '',
