@@ -11,7 +11,7 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
   async function carregarAtletas() {
     try {
       setLoading(true)
-      // O timestamp bura o cache sem quebrar o CORS
+    
       const response = await api.get(`/atletas?_t=${Date.now()}`)
       
       console.log('Resposta da API /atletas:', response.data)
