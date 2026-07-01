@@ -6,7 +6,6 @@ import {
   EyeOff
 } from 'lucide-react'
 
-// Adicionada a prop onAlternarParaCadastro
 function Login({ onLoginSuccess, onAlternarParaCadastro }) {
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
