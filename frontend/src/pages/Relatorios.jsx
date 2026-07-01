@@ -42,7 +42,6 @@ function Relatorios({ usuario, atletaSelecionado }) {
       const dadosAnalise = resAnalise.data?.analise || resAnalise.data || null
       setAnalise(dadosAnalise)
 
-      // CORREÇÃO VISUAL: Garante que o relatório use a lista da IA invertida para manter o mais novo no topo
       if (dadosAnalise && dadosAnalise.treinos) {
         setTreinos(dadosAnalise.treinos.slice().reverse())
       } else {
