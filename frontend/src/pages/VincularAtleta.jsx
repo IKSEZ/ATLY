@@ -15,8 +15,6 @@ function VincularAtleta({ tecnicoId }) {
     setCarregando(true)
 
     try {
-      // Dispara a requisição para a rota específica informada
-      // Passando o tecnicoId no body caso sua API precise saber quem está vinculando
       await api.post(`/atletas/${atletaId}/vincular`, {
         tecnicoId: tecnicoId 
       })
