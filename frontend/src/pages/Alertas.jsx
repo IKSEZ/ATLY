@@ -8,12 +8,10 @@ function Alertas({ usuario, atletaSelecionado }) {
   const [loading, setLoading] = useState(true)
 
   async function carregarAlertas() {
-    // CORREÇÃO: Filtro inteligente para traduzir o ID recebido da navegação global
     const idDoAtletaSelecionado = atletaSelecionado && typeof atletaSelecionado === 'object' 
       ? atletaSelecionado.id 
       : atletaSelecionado;
 
-    // CORREÇÃO: Bloqueia chamadas desnecessárias se for técnico e não tiver selecionado ninguém
     if (usuario?.perfil === 'tecnico' && !idDoAtletaSelecionado) {
       setAlertas([])
       setLoading(false)
@@ -29,7 +27,6 @@ function Alertas({ usuario, atletaSelecionado }) {
         url = `/relatorios/atleta/${usuario.id}/alertas`
       }
 
-      // CORREÇÃO: Mapeia para buscar na URL da API o identificador correto
       if (usuario?.perfil === 'tecnico' && idDoAtletaSelecionado) {
         url = `/relatorios/atleta/${idDoAtletaSelecionado}/alertas`
       }
@@ -57,7 +54,6 @@ function Alertas({ usuario, atletaSelecionado }) {
       <div className="card full-card">
         {loading ? (
           <div className="empty-state">Carregando alertas...</div>
-        // CORREÇÃO: Trava de interface para estado sem dados selecionados
         ) : usuario?.perfil === 'tecnico' && !(atletaSelecionado && (typeof atletaSelecionado === 'object' ? atletaSelecionado.id : atletaSelecionado)) ? (
           <div className="empty-state">Selecione um atleta para ver os alertas.</div>
         ) : !alertas.length ? (
