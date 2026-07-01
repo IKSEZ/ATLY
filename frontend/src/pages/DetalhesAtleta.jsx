@@ -5,7 +5,7 @@ import HumanBodyRiskMap from '../components/HumanBodyRiskMap'
 import StatCard from '../components/StatCard'
 
 function DetalhesAtleta({ atletaID, atletaId, atletaSelecionado }) {
-  // Captura o ID vindo de qualquer variação de nome do componente pai
+ 
   const idReal = atletaID || atletaId || atletaSelecionado
 
   const [atleta, setAtleta] = useState(null)
@@ -22,7 +22,7 @@ function DetalhesAtleta({ atletaID, atletaId, atletaSelecionado }) {
 
       try {
         const response = await api.get(`/atletas/${idReal}`)
-        // Define o estado com os dados recebidos do backend
+        
         setAtleta(response.data.atleta || response.data)
       } catch (err) {
         console.error('Erro ao buscar detalhes do atleta:', err)
@@ -35,7 +35,7 @@ function DetalhesAtleta({ atletaID, atletaId, atletaSelecionado }) {
     buscarAtleta()
   }, [idReal])
 
-  // Se realmente não houver ID selecionado, exibe o estado vazio
+  
   if (!idReal) {
     return (
       <section>
