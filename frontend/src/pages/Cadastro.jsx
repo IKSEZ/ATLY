@@ -6,7 +6,7 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [perfil, setPerfil] = useState('tecnico') // <-- Novo estado (começa como tecnico)
+  const [perfil, setPerfil] = useState('tecnico') 
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
@@ -22,7 +22,7 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
         nome,
         email,
         senha,
-        perfil // <-- Enviando o perfil selecionado
+        perfil 
       })
 
       setSucesso(true)
