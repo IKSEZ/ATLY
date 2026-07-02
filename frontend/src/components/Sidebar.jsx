@@ -26,7 +26,7 @@ function Sidebar({ usuario, tela, setTela, onLogout }) {
   const menuTecnico = [
     { id: 'dashboard', label: 'Painel Técnico', icon: Users },
     { id: 'cadastro-atleta', label: 'Cadastrar Atleta', icon: Plus },
-    { id: 'vincular-atleta', label: 'Vincular Atleta', icon: Link2 }, // 2. ITEM ADICIONADO AQUI
+    { id: 'vincular-atleta', label: 'Vincular Atleta', icon: Link2 },
     { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
     { id: 'relatorios', label: 'Relatórios', icon: BarChart3 }
   ]
@@ -49,8 +49,6 @@ function Sidebar({ usuario, tela, setTela, onLogout }) {
         <div>
           <strong>{usuario?.nome || 'Usuário'}</strong>
           <span>{usuario?.perfil || 'perfil'}</span>
-          
-          {/* Se for atleta, exibe o ID logo abaixo do perfil */}
           {usuario?.perfil === 'atleta' && (
             <span style={{ fontSize: '11px', display: 'block', opacity: 0.7, marginTop: '2px' }}>
               ID: #{usuario?.id}

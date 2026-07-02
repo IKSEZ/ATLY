@@ -4,12 +4,11 @@ import api from '../services/api'
 
 
 const coordenadasExatas = {
- 
   'cabeca': { x: 50, y: 8 },
   'cabeça': { x: 50, y: 8 },
   'pescoço': { x: 50, y: 15 },
   'pescoco': { x: 50, y: 15 },
-  'ombro': { x: 40, y: 22 }, // Ombro esquerdo da tela
+  'ombro': { x: 40, y: 22 },
   'peito': { x: 50, y: 28 },
   'peitoral': { x: 50, y: 28 },
   'abdomen': { x: 50, y: 40 },
@@ -19,7 +18,7 @@ const coordenadasExatas = {
   'coxa': { x: 44, y: 62 },
   'quadriceps': { x: 44, y: 62 },
   'coxa / quadriceps': { x: 44, y: 62 },
-  'joelho': { x: 44, y: 74 }, 
+  'joelho': { x: 44, y: 74 },
   'panturrilha': { x: 43, y: 84 },
   'tornozelo': { x: 42, y: 92 },
   'pe': { x: 41, y: 97 },
@@ -32,7 +31,7 @@ const coordenadasExatas = {
   'mao': { x: 25, y: 58 },
   'mão': { x: 25, y: 58 },
 
-  'costas': { x: 84, y: 28 }, 
+  'costas': { x: 84, y: 28 },
   'lombar': { x: 84, y: 38 },
   'gluteo': { x: 85, y: 48 },
   'glúteo': { x: 85, y: 48 },
@@ -58,7 +57,7 @@ function HumanBodyRiskMap({ atletaId }) {
         const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
         const response = await api.get(`/atletas/${atletaId}/mapa-corporal`, { headers })
-        
+
         const regioes = response.data?.regioes || []
         const alertas = response.data?.alertas || []
 
@@ -85,7 +84,6 @@ function HumanBodyRiskMap({ atletaId }) {
 
   function obterPosicao(regiao) {
     const nomeLimpo = String(regiao.nome || '').toLowerCase().trim()
-    
     if (coordenadasExatas[nomeLimpo]) {
       return {
         x: coordenadasExatas[nomeLimpo].x,
@@ -98,7 +96,6 @@ function HumanBodyRiskMap({ atletaId }) {
       y: regiao.y
     }
   }
-
   return (
     <section className="body3d-page">
       <div className="body3d-main">

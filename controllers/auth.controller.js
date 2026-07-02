@@ -96,15 +96,11 @@ const login = async (req, res) => {
       id: usuario.id,
       nome: usuario.nome,
       perfil: usuario.perfil,
-      // Sinaliza ao frontend que deve redirecionar para troca de senha
       senha_provisoria: usuario.senha_provisoria ?? false,
     },
   });
 };
 
-// ----------------------------------------------------------
-// logout — RF07
-// ----------------------------------------------------------
 const logout = async (req, res) => {
   await pool.query(
     'INSERT INTO tokens_invalidados (token, invalidado_em) VALUES ($1, NOW())',
@@ -114,12 +110,6 @@ const logout = async (req, res) => {
   res.json({ mensagem: 'Logout realizado com sucesso' });
 };
 
-// ----------------------------------------------------------
-// definirSenha — primeiro acesso do atleta
-// O atleta usa a senha temporária para fazer login normalmente,
-// depois chama esta rota para definir a senha definitiva.
-// Exige autenticação (token válido).
-// ----------------------------------------------------------
 const definirSenha = async (req, res) => {
   const { senha_atual, nova_senha } = req.body;
 

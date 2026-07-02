@@ -8,7 +8,6 @@ app = FastAPI(title="ACWR IA Service", version="1.0.0")
 class Treino(BaseModel):
     data_treino: str
     carga: float = Field(ge=0)
-    # Adicionamos propriedades opcionais para que o Python possa processar ou repassar
     tipo: str | None = None
     intensidade: int | None = None
     duracao_min: int | None = None
@@ -57,10 +56,8 @@ def analisar(payload: AnaliseRequest):
             data = data.replace(tzinfo=timezone.utc)
         treinos_sorted.append((data, treino))
 
-    # Ordena por data
     treinos_sorted.sort(key=lambda x: x[0])
 
-    # 1. Primeiro passo: extrair métricas globais de carga para o ACWR
     for data, treino in treinos_sorted:
         carga_val = float(treino.carga)
         if data >= vinte_e_oito_dias:
@@ -77,12 +74,10 @@ def analisar(payload: AnaliseRequest):
     idade = int(payload.perfil.get("idade", 25) if isinstance(payload.perfil, dict) else getattr(payload.perfil, "idade", 25) or 25)
     limite_carga_diaria = 2000 + (200 if idade < 20 else -100 if idade > 40 else 0)
 
-    # 2. Segundo passo: Classificar o risco INDIVIDUAL de cada treino da lista
     treinos_analisados_resultado = []
     for data, treino in treinos_sorted:
         carga_val = float(treino.carga)
-        
-        # Regra de classificação individual baseada na carga/esforço do treino
+
         if carga_val >= 1200 or (treino.intensidade and treino.intensidade >= 8):
             treino_risco = "alto"
         elif carga_val >= 600 or (treino.intensidade and treino.intensidade >= 6):
@@ -98,10 +93,9 @@ def analisar(payload: AnaliseRequest):
             "duracao_min": treino.duracao_min,
             "volume": treino.volume,
             "carga": treino.carga,
-            "nivel_risco": treino_risco # O Python agora define o risco de cada linha separadamente!
+            "nivel_risco": treino_risco
         })
 
-    # Determinar nível de risco global macro
     nivel_macro = "baixo"
     mensagem = "Risco baixo de sobrecarga."
 
@@ -115,7 +109,7 @@ def analisar(payload: AnaliseRequest):
     if carga_hoje and carga_hoje > limite_carga_diaria:
         pct_excesso = round((carga_hoje - limite_carga_diaria) / limite_carga_diaria * 100)
         razao_limite = round(carga_hoje / limite_carga_diaria, 1)
-        
+
         if carga_hoje > 1.5 * limite_carga_diaria:
             nivel_macro = "alto"
             mensagem = f"Risco alto: carga hoje ({carga_hoje:.0f}) é {razao_limite}x do limite esperado ({limite_carga_diaria:.0f})."
@@ -133,5 +127,5 @@ def analisar(payload: AnaliseRequest):
         "carga_hoje": carga_hoje,
         "nivel_risco": nivel_macro,
         "mensagem": mensagem,
-        "treinos": treinos_analisados_resultado # Retorna a lista calculada misturando os riscos
+        "treinos": treinos_analisados_resultado
     }

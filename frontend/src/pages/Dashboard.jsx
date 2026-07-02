@@ -24,7 +24,6 @@ function Dashboard({ atletaId }) {
     try {
       setCarregando(true)
       setErro('')
-      
       const token = localStorage.getItem('token')
 
       const [resAnalise, resTreinos] = await Promise.all([
@@ -46,9 +45,7 @@ function Dashboard({ atletaId }) {
         setAnalise(null)
       }
 
-      // CORREÇÃO CRÍTICA: Prioriza os treinos com risco individual calculados pelo Python (app.py)
       if (dadosAnalise && dadosAnalise.treinos) {
-        // O .slice().reverse() garante que o treino mais novo (22/06) fique no topo da tabela!
         setTreinos(dadosAnalise.treinos.slice().reverse())
       } else if (resTreinos && resTreinos.data) {
         setTreinos(resTreinos.data.treinos || resTreinos.data || [])
@@ -136,7 +133,6 @@ function Dashboard({ atletaId }) {
 
       <div className="card full-card">
         <h3>Histórico de Treinos</h3>
-        {/* Passa o risco geral macro como fallback */}
         <TrainingTable treinos={treinos || []} riscoGeral={analise?.nivel_risco || 'baixo'} />
       </div>
     </section>

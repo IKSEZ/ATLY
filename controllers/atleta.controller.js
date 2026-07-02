@@ -208,9 +208,6 @@ const buscarPorId = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------
-// criar — RF08
-// ----------------------------------------------------------
 const criar = async (req, res) => {
   const { nome, email, idade, peso, modalidade, historico_lesoes } = req.body;
   const senhaTemporaria = crypto.randomBytes(6).toString('base64url');
@@ -257,9 +254,6 @@ const criar = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------
-// atualizar — RF10
-// ----------------------------------------------------------
 const atualizar = async (req, res) => {
   const { id } = req.params;
   const { idade, peso, modalidade, historico_lesoes } = req.body;
@@ -286,9 +280,6 @@ const atualizar = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------
-// vincular / desvincular — RF04
-// ----------------------------------------------------------
 const vincular = async (req, res) => {
   const { id: atletaId } = req.params;
   try {
@@ -329,10 +320,6 @@ const desvincular = async (req, res) => {
   }
 };
 
-// ----------------------------------------------------------
-// mapaCorporal — GET /atletas/:id/mapa-corporal
-// Corrigido com LEFT JOIN para evitar telas infinitas de loading
-// ----------------------------------------------------------
 const REGIOES_POR_TERMO = [
   { termo: ['joelho'], nome: 'Joelho', x: 50, y: 72 },
   { termo: ['coxa','quad'], nome: 'Coxa / Quadríceps', x: 50, y: 60 },
@@ -363,7 +350,6 @@ const mapaCorporal = async (req, res) => {
   }
 
   try {
-    // Ajustado com LEFT JOIN para evitar quebra caso ap esteja nulo
     const { rows } = await pool.query(
       `SELECT 
         COALESCE(ap.nivel_risco, 'baixo') AS nivel_risco, 

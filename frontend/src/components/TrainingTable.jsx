@@ -37,7 +37,6 @@ function TrainingTable({ treinos = [], riscoGeral = 'baixo' }) {
               <td>{treino.volume || '-'}</td>
               <td>{treino.carga || '-'}</td>
               <td>
-                {/* IMPORTANTE: Primeiro tenta usar o risco do treino vindo do Python. Se não existir, usa o macro */}
                 <RiskBadge risco={treino.nivel_risco ?? treino.risco ?? riscoDoAtleta} />
               </td>
             </tr>

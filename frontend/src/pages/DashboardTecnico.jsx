@@ -11,7 +11,6 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
   async function carregarAtletas() {
     try {
       setLoading(true)
-    
       const response = await api.get(`/atletas?_t=${Date.now()}`)
       
       console.log('Resposta da API /atletas:', response.data)
@@ -43,7 +42,6 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
     try {
       if (!atleta) return;
 
-      // Busca o ID em todas as chaves possíveis para evitar falhas de nomenclatura do banco
       const idDetectado = atleta.id ?? atleta.id_atleta ?? atleta.atleta_id ?? atleta.usuario_id ?? atleta.id_usuario;
 
       console.log("ID detectado no clique:", idDetectado);
@@ -99,7 +97,6 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
                   boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)'
                 }}
               >
-                {/* Linha Superior: Avatar + Informações Principais */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{
                     backgroundColor: 'var(--purple-dark)',
@@ -138,7 +135,6 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
                   </div>
                 </div>
 
-                {/* Linha Central: Distintivo de Nível de Risco */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -154,7 +150,6 @@ function DashboardTecnico({ tecnicoId, setTela, setAtletaSelecionado }) {
                   <RiskBadge risco={atleta.nivel_risco} />
                 </div>
 
-                {/* BOTÃO CORRIGIDO: Removido os filtros de brilho direto que travavam o clique */}
                 <button
                   type="button"
                   onClick={() => abrirAtleta(atleta)}

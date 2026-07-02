@@ -5,7 +5,6 @@ import HumanBodyRiskMap from '../components/HumanBodyRiskMap'
 import StatCard from '../components/StatCard'
 
 function DetalhesAtleta({ atletaID, atletaId, atletaSelecionado }) {
- 
   const idReal = atletaID || atletaId || atletaSelecionado
 
   const [atleta, setAtleta] = useState(null)
@@ -35,7 +34,6 @@ function DetalhesAtleta({ atletaID, atletaId, atletaSelecionado }) {
     buscarAtleta()
   }, [idReal])
 
-  
   if (!idReal) {
     return (
       <section>
@@ -99,9 +97,8 @@ function DetalhesAtleta({ atletaID, atletaId, atletaSelecionado }) {
       </div>
 
       <div className="dashboard-grid">
-        {/* Passa o ID correto para o mapa de calor renderizar o corpo humano */}
         <HumanBodyRiskMap atletaId={idReal} />
- 
+
         <div className="card full-card" style={{ marginTop: '20px' }}>
           <h3>Histórico de Lesões</h3>
           <p>{atleta.historico_lesoes || 'Nenhum histórico informado.'}</p>

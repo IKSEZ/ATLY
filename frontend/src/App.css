@@ -47,10 +47,6 @@ button {
   cursor: pointer;
 }
 
-/* ==========================================================================
-   LOGIN
-========================================================================== */
-
 .login-screen {
   width: 100vw;
   min-height: 100vh;
@@ -298,10 +294,6 @@ button {
   color: #ffffff;
 }
 
-/* ==========================================================================
-   LAYOUT GERAL
-========================================================================== */
-
 .app {
   width: 100vw;
   min-height: 100vh;
@@ -331,10 +323,6 @@ button {
   padding: 36px;
   overflow-x: hidden;
 }
-
-/* ==========================================================================
-   MENU
-========================================================================== */
 
 .brand {
   display: flex;
@@ -422,10 +410,6 @@ button {
 .logout-button:hover {
   background: rgba(239, 68, 68, 0.12);
 }
-
-/* ==========================================================================
-   CONTEÚDO
-========================================================================== */
 
 .page-header {
   display: flex;
@@ -552,10 +536,6 @@ th {
   color: #d1d5db;
 }
 
-/* ==========================================================================
-   FORM
-========================================================================== */
-
 .form-layout {
   display: grid;
   grid-template-columns: 1.4fr 0.6fr;
@@ -630,10 +610,6 @@ th {
   margin-bottom: 14px;
 }
 
-/* ==========================================================================
-   BODY 3D - MAPA DE CALOR & ALERTAS
-========================================================================== */
-
 .body3d-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 370px;
@@ -693,22 +669,15 @@ th {
   border: 1px solid rgba(168, 85, 247, 0.18);
 }
 
-/* ============================================
-   AQUI ESTÁ A CORREÇÃO PRINCIPAL DA IMAGEM 
-============================================ */
-
-/* CONTAINER DA IMAGEM TRAVADO NA PROPORÇÃO EXATA */
 .body3d-image-area,
 .body3d-image-wrapper {
   position: relative;
   width: 100%;
   max-width: 780px; 
   margin: 0 auto;
-  /* A MÁGICA ESTÁ AQUI: Trava a caixa na proporção real da sua imagem! */
   aspect-ratio: 780 / 688; 
 }
 
-/* IMAGEM DO BONECO 3D (Preenche 100% da caixa travada) */
 .body3d-image {
   position: absolute;
   top: 0;
@@ -720,7 +689,6 @@ th {
   filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.4));
 }
 
-/* CAMADA DOS PONTOS DE CALOR (Cobre exatamente a imagem) */
 .body3d-heatmap-layer {
   position: absolute;
   top: 0;
@@ -851,7 +819,6 @@ th {
   overflow: hidden;
 }
 
-/* CLASSES DE PREENCHIMENTO DO ACWR */
 .bg-alto { background: #fb174b; }
 .bg-medio { background: #f97316; }
 .bg-atencao { background: #eab308; }
@@ -943,7 +910,6 @@ th {
   text-transform: capitalize;
 }
 
-/* CARDS DOS ALERTAS (Cores Elegantes) */
 .alert-body-item.alto {
   border: 1px solid #fb174b;
   background: rgba(251, 23, 75, 0.18);
@@ -1079,10 +1045,6 @@ th {
     linear-gradient(90deg, rgba(168, 85, 247, 0.08) 1px, transparent 1px);
   background-size: 28px 28px;
 }
-
-/* ==========================================================================
-   RESPONSIVO
-========================================================================== */
 
 @media (max-width: 1200px) {
   .body3d-page {

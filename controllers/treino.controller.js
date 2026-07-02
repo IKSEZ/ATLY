@@ -91,12 +91,10 @@ const registrar = async (req, res) => {
     return res.status(400).json({ erro: 'Campo volume deve ser numérico' });
   }
 
-  // Atleta só pode registrar treino para si mesmo
   if (req.usuario.perfil === 'atleta' && req.usuario.id !== atleta_id) {
     return res.status(403).json({ erro: 'Acesso negado' });
   }
 
-  // Carga de treino = intensidade × duração (métrica simples e eficaz)
   const carga = intensidade * duracao_min;
 
   const { rows } = await pool.query(
@@ -122,7 +120,6 @@ const registrar = async (req, res) => {
 const listarPorAtleta = async (req, res) => {
   const { atletaId } = req.params;
 
-  
   if (req.usuario.perfil === 'atleta' && req.usuario.id !== parseInt(atletaId)) {
     return res.status(403).json({ erro: 'Acesso negado' });
   }
@@ -146,7 +143,6 @@ const analisarCarga = async (req, res) => {
     return res.status(403).json({ erro: 'Acesso negado' });
   }
 
- 
   const { rows: treinos } = await pool.query(
     `SELECT id, data_treino, carga, tipo, intensidade, duracao_min, volume
      FROM sessoes_treino
@@ -156,7 +152,6 @@ const analisarCarga = async (req, res) => {
     [atletaId]
   );
 
-  
   const { rows: perfil } = await pool.query(
     'SELECT idade, peso, historico_lesoes FROM atleta_perfil WHERE usuario_id = $1',
     [atletaId]
@@ -164,7 +159,6 @@ const analisarCarga = async (req, res) => {
 
   let analise;
   try {
-    
     analise = await chamarServicoIA(atletaId, treinos, perfil[0] || {});
   } catch (err) {
     console.error('IA service error:', err.message);
@@ -174,7 +168,6 @@ const analisarCarga = async (req, res) => {
     });
   }
 
-  
   if (analise.nivel_risco === 'alto') {
     await pool.query(
       `INSERT INTO alertas (atleta_id, tipo, mensagem, criado_em)
@@ -183,7 +176,6 @@ const analisarCarga = async (req, res) => {
     );
   }
 
-  
   res.json({
     analise: {
       acwr: analise.acwr,
@@ -192,7 +184,7 @@ const analisarCarga = async (req, res) => {
       carga_hoje: analise.carga_hoje,
       nivel_risco: analise.nivel_risco,
       mensagem: analise.mensagem,
-      treinos: analise.treinos 
+      treinos: analise.treinos
     }
   });
 };

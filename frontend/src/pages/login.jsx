@@ -107,7 +107,6 @@ function Login({ onLoginSuccess, onAlternarParaCadastro }) {
           </button>
         </form>
 
-        {/* LINK PARA IR PARA A TELA DE CADASTRO */}
         <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px', color: '#666' }}>
           Não tem uma conta?{' '}
           <button 

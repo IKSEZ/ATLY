@@ -15,14 +15,12 @@ const coordenadasExatas = {
   'cabeça': { x: 50, y: 9 },
   'pescoço': { x: 50, y: 15 },
   'pescoco': { x: 50, y: 15 },
-  'ombro': { x: 41, y: 22 },      
+  'ombro': { x: 41, y: 22 },
   'peito': { x: 50, y: 27 },
   'peitoral': { x: 50, y: 27 },
   'abdomen': { x: 50, y: 38 },
   'abdômen': { x: 50, y: 38 },
-  'quadril': { x: 50, y: 48 },     
-  
-  
+  'quadril': { x: 50, y: 48 },
   'coxa': { x: 45, y: 61 },
   'quadriceps': { x: 45, y: 61 },
   'coxa / quadriceps': { x: 45, y: 61 },
@@ -41,7 +39,7 @@ const coordenadasExatas = {
   'mão': { x: 27, y: 59 },
 
 
-  'costas': { x: 86, y: 28 }, 
+  'costas': { x: 86, y: 28 },
   'lombar': { x: 87, y: 40 },
   'gluteo': { x: 88, y: 48 },
   'glúteo': { x: 88, y: 48 },
@@ -64,7 +62,6 @@ function HumanBody3D({ atletaId }) {
       try {
         const token = localStorage.getItem('token')
         const headers = { Authorization: `Bearer ${token}` }
-
         const [resMapa, resAnalise, resTreinos] = await Promise.all([
           api.get(`/atletas/${atletaId}/mapa-corporal`, { headers }),
           api.get(`/treinos/atleta/${atletaId}/analise`, { headers }).catch(() => ({ data: {} })),
@@ -75,12 +72,9 @@ function HumanBody3D({ atletaId }) {
           regioes: resMapa.data?.regioes || [],
           alertas: resMapa.data?.alertas || []
         })
-        
-       
         const dadosAnalise = resAnalise.data?.analise || resAnalise.data || {}
         setAnalise(dadosAnalise)
 
-        
         const listaTreinos = dadosAnalise.treinos || resTreinos.data?.treinos || resTreinos.data || []
         setTreinos(listaTreinos)
 
@@ -121,12 +115,10 @@ function HumanBody3D({ atletaId }) {
   }
 
   return (
-    // Reestruturado para organizar em coluna flexível de modo que a tabela caiba embaixo de tudo
     <section className="body3d-page-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
-      
-      {/* Grid superior contendo o bloco principal do boneco e a barra lateral de alertas */}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 370px', gap: '20px', width: '100%' }}>
-        
+
         <div className="body3d-main">
           <div className="body3d-header">
             <div>
@@ -284,7 +276,6 @@ function HumanBody3D({ atletaId }) {
 
       </div>
 
-      {/* AQUI ERA ONDE FALTAVA INSERIR NO ARQUIVO: Caixa da tabela ocupando 100% da largura no rodapé */}
       <div className="card full-card" style={{ width: '100%' }}>
         <h3>Histórico Completo de Treinos</h3>
         <TrainingTable treinos={treinos} riscoGeral={analise?.nivel_risco || 'baixo'} />

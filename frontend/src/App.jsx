@@ -26,7 +26,6 @@ function App() {
   const [atletaSelecionado, setAtletaSelecionado] = useState(null)
   const [telaPublica, setTelaPublica] = useState('login') 
 
-  
   useEffect(() => {
     try { 
       console.log("--- RASTREAMENTO DE ESTADO DO APP ---");
@@ -118,7 +117,6 @@ function App() {
           <Relatorios usuario={usuario} atletaSelecionado={atletaSelecionado} />
         )}
 
-        {/* Mantido o mapeamento blindado das propriedades */}
         {tela === 'detalhes-atleta' && (
           <DetalhesAtleta 
             atletaId={atletaSelecionado} 

@@ -6,7 +6,7 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [perfil, setPerfil] = useState('tecnico') 
+  const [perfil, setPerfil] = useState('tecnico')
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
@@ -22,7 +22,7 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
         nome,
         email,
         senha,
-        perfil 
+        perfil
       })
 
       setSucesso(true)
@@ -44,7 +44,6 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
   return (
     <main className="login-screen">
       <section className="login-container">
-        
         <button 
           type="button"
           onClick={onVoltarParaLogin}
@@ -92,7 +91,6 @@ function Cadastro({ onVoltarParaLogin, onCadastroSucesso }) {
               />
             </label>
 
-            {/* NOVO CAMPO: SELEÇÃO DE PERFIL */}
             <label>
               Tipo de Perfil
               <select
