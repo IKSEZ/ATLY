@@ -1,9 +1,6 @@
--- ============================================================
--- schema.sql — criação das tabelas do Atly no PostgreSQL
--- Execute: psql -U postgres -d atly_db -f schema.sql
--- ============================================================
 
--- Usuários (atletas e técnicos)
+
+
 CREATE TABLE IF NOT EXISTS usuarios (
   id              SERIAL PRIMARY KEY,
   nome            VARCHAR(100) NOT NULL,
@@ -15,7 +12,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   criado_em       TIMESTAMP DEFAULT NOW()
 );
 
--- Dados físicos dos atletas (separado por LGPD — dados sensíveis de saúde)
+
 CREATE TABLE IF NOT EXISTS atleta_perfil (
   id               SERIAL PRIMARY KEY,
   usuario_id       INT UNIQUE REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -25,7 +22,6 @@ CREATE TABLE IF NOT EXISTS atleta_perfil (
   atualizado_em    TIMESTAMP DEFAULT NOW()
 );
 
--- Vínculo técnico ↔ atleta
 CREATE TABLE IF NOT EXISTS tecnico_atleta (
   tecnico_id  INT REFERENCES usuarios(id) ON DELETE CASCADE,
   atleta_id   INT REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -33,7 +29,6 @@ CREATE TABLE IF NOT EXISTS tecnico_atleta (
   PRIMARY KEY (tecnico_id, atleta_id)
 );
 
--- Sessões de treino registradas
 CREATE TABLE IF NOT EXISTS sessoes_treino (
   id           SERIAL PRIMARY KEY,
   atleta_id    INT REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -45,7 +40,6 @@ CREATE TABLE IF NOT EXISTS sessoes_treino (
   data_treino  TIMESTAMP DEFAULT NOW()
 );
 
--- Alertas de risco gerados pelo módulo de IA
 CREATE TABLE IF NOT EXISTS alertas (
   id         SERIAL PRIMARY KEY,
   atleta_id  INT REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -54,13 +48,11 @@ CREATE TABLE IF NOT EXISTS alertas (
   criado_em  TIMESTAMP DEFAULT NOW()
 );
 
--- Tokens invalidados (logout explícito — RF07)
 CREATE TABLE IF NOT EXISTS tokens_invalidados (
   token        TEXT PRIMARY KEY,
   invalidado_em TIMESTAMP DEFAULT NOW()
 );
 
--- Índices para performance nas queries mais frequentes
 CREATE INDEX IF NOT EXISTS idx_treinos_atleta_data
   ON sessoes_treino(atleta_id, data_treino DESC);
 
