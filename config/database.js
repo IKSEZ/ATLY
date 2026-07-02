@@ -1,7 +1,3 @@
-// ============================================================
-// config/database.js — conexão com o PostgreSQL
-// Suporta DATABASE_URL (Railway/produção) ou variáveis separadas (local)
-// ============================================================
 
 const { Pool } = require('pg');
 
