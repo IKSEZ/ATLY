@@ -1,14 +1,7 @@
-// ============================================================
-// controllers/relatorio.controller.js
-// Dados agregados para gráficos e relatórios — RF14
-// ============================================================
 
 const { pool } = require('../config/database');
 
-// ----------------------------------------------------------
-// desempenho — dados para os gráficos de evolução
-// Retorna carga semanal das últimas 8 semanas
-// ----------------------------------------------------------
+
 const desempenho = async (req, res) => {
   const { atletaId } = req.params;
 
@@ -16,7 +9,7 @@ const desempenho = async (req, res) => {
     return res.status(403).json({ erro: 'Acesso negado' });
   }
 
-  // Agrega carga por semana — perfeito para gráfico de barras no front-end
+  
   const { rows } = await pool.query(
     `SELECT
        DATE_TRUNC('week', data_treino) AS semana,
@@ -34,9 +27,7 @@ const desempenho = async (req, res) => {
   res.json({ semanas: rows });
 };
 
-// ----------------------------------------------------------
-// alertas — histórico de alertas de risco — RF13
-// ----------------------------------------------------------
+
 const alertas = async (req, res) => {
   const { atletaId } = req.params;
 
