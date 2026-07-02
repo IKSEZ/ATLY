@@ -1,7 +1,3 @@
-// ============================================================
-// controllers/auth.controller.js
-// Lógica de cadastro, login, logout e troca de senha — RF01 ao RF07
-// ============================================================
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -12,9 +8,7 @@ const SALT_ROUNDS = 12;
 const MAX_TENTATIVAS = 5;
 const BLOQUEIO_MS = 15 * 60 * 1000;
 
-// ----------------------------------------------------------
-// cadastrar — RF01
-// ----------------------------------------------------------
+
 const cadastrar = async (req, res) => {
   const { nome, email, senha, perfil } = req.body;
 
@@ -42,10 +36,7 @@ const cadastrar = async (req, res) => {
   res.status(201).json({ usuario: rows[0] });
 };
 
-// ----------------------------------------------------------
-// login — RF02, RF05
-// Inclui senha_provisoria na resposta para o frontend redirecionar
-// ----------------------------------------------------------
+
 const login = async (req, res) => {
   const { email, senha } = req.body;
 
