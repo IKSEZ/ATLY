@@ -1,8 +1,4 @@
-// ============================================================
-// controllers/treino.controller.js
-// Registro e análise de treinos — RF09, RF11, RF12, RF13
-// A análise de risco é delegada ao serviço Python via HTTP
-// ============================================================
+
 
 const { pool } = require('../config/database');
 
@@ -21,7 +17,7 @@ function obterUrlsServicoIA() {
       urls.push(fallbackUrl.toString().replace(/\/$/, ''));
     }
   } catch {
-    // Mantém apenas a URL original quando o valor do ambiente estiver malformado.
+    
   }
 
   return [...new Set(urls)];
@@ -76,10 +72,7 @@ async function chamarServicoIA(atletaId, treinos, perfil) {
   throw new Error(ultimoErro?.message || 'Não foi possível conectar ao serviço IA');
 }
 
-// ----------------------------------------------------------
-// registrar — RF09
-// Salva uma sessão de treino: intensidade, duração, volume
-// ----------------------------------------------------------
+
 const registrar = async (req, res) => {
   const atleta_id = req.body.atleta_id ?? req.body.atletaId;
   const intensidade = Number(req.body.intensidade);
@@ -125,13 +118,11 @@ const registrar = async (req, res) => {
   });
 };
 
-// ----------------------------------------------------------
-// listarPorAtleta — histórico de treinos
-// ----------------------------------------------------------
+
 const listarPorAtleta = async (req, res) => {
   const { atletaId } = req.params;
 
-  // Controle de acesso: atleta vê só o próprio histórico (RF03)
+  
   if (req.usuario.perfil === 'atleta' && req.usuario.id !== parseInt(atletaId)) {
     return res.status(403).json({ erro: 'Acesso negado' });
   }
@@ -147,14 +138,7 @@ const listarPorAtleta = async (req, res) => {
   res.json({ treinos: rows });
 };
 
-// ----------------------------------------------------------
-// analisarCarga — RF11, RF12, RF13
-// Busca o histórico de treinos e envia para o serviço Python
-// que calcula o ACWR e retorna o nível de risco
-// ----------------------------------------------------------
-// ----------------------------------------------------------
-// analisarCarga — CORRIGIDO PARA ENVIAR E REPASSAR DADOS DA IA
-// ----------------------------------------------------------
+
 const analisarCarga = async (req, res) => {
   const { atletaId } = req.params;
 
@@ -162,7 +146,7 @@ const analisarCarga = async (req, res) => {
     return res.status(403).json({ erro: 'Acesso negado' });
   }
 
-  // CORREÇÃO 1: Seleciona todas as colunas vitais para o Python conseguir calcular o risco linha por linha
+ 
   const { rows: treinos } = await pool.query(
     `SELECT id, data_treino, carga, tipo, intensidade, duracao_min, volume
      FROM sessoes_treino
@@ -172,7 +156,7 @@ const analisarCarga = async (req, res) => {
     [atletaId]
   );
 
-  // Busca dados físicos do atleta para contextualizar a análise
+  
   const { rows: perfil } = await pool.query(
     'SELECT idade, peso, historico_lesoes FROM atleta_perfil WHERE usuario_id = $1',
     [atletaId]
@@ -180,7 +164,7 @@ const analisarCarga = async (req, res) => {
 
   let analise;
   try {
-    // Chama o microserviço Python de IA passando o payload completo
+    
     analise = await chamarServicoIA(atletaId, treinos, perfil[0] || {});
   } catch (err) {
     console.error('IA service error:', err.message);
@@ -190,7 +174,7 @@ const analisarCarga = async (req, res) => {
     });
   }
 
-  // RF13: se risco elevado, registra alerta no banco
+  
   if (analise.nivel_risco === 'alto') {
     await pool.query(
       `INSERT INTO alertas (atleta_id, tipo, mensagem, criado_em)
@@ -199,7 +183,7 @@ const analisarCarga = async (req, res) => {
     );
   }
 
-  // CORREÇÃO 2: Garante o envio da estrutura limpa contendo o array estruturado de treinos individuais analisados pela IA
+  
   res.json({
     analise: {
       acwr: analise.acwr,
@@ -208,7 +192,7 @@ const analisarCarga = async (req, res) => {
       carga_hoje: analise.carga_hoje,
       nivel_risco: analise.nivel_risco,
       mensagem: analise.mensagem,
-      treinos: analise.treinos // Envia a lista mista calculada pelo app.py para o React
+      treinos: analise.treinos 
     }
   });
 };
