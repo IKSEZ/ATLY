@@ -1,8 +1,4 @@
-// ============================================================
-// controllers/atleta.controller.js
-// CRUD de atletas com controle de acesso por perfil — RF03, RF08, RF10
-// Versão Blindada contra erros de dados nulos e travamentos no Frontend
-// ============================================================
+
 
 const crypto = require('crypto');
 const { pool } = require('../config/database');
@@ -20,7 +16,6 @@ function obterUrlsServicoIA() {
       urls.push(fallbackUrl.toString().replace(/\/$/, ''));
     }
   } catch {
-    // Mantém apenas a URL original quando o valor do ambiente estiver malformado.
   }
   return [...new Set(urls)];
 }
@@ -109,9 +104,7 @@ async function analisarAtleta(atletaId) {
   throw new Error(ultimoErro?.message || 'Não foi possível conectar ao serviço IA');
 }
 
-// ----------------------------------------------------------
-// listar — somente técnico, vê apenas seus atletas vinculados
-// ----------------------------------------------------------
+
 const listar = async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -141,9 +134,7 @@ const listar = async (req, res) => {
 };
 
 
-// ----------------------------------------------------------
-// buscarPorId — Detalhes do perfil do atleta
-// ----------------------------------------------------------
+
 const buscarPorId = async (req, res) => {
   const { id } = req.params;
   const idNumerico = parseInt(id);
